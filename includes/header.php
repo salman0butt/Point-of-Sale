@@ -125,32 +125,32 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </p>
             </a>
           </li>
-      <!--     <li class="nav-item has-treeview menu-open">
+          <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">
-               <i class="nav-icon fas fa-th"></i>
+              <i class="fas fa-bars"></i>
               <p>
-                Categories
+                Products
                 <i class="right fas fa-angle-left"></i>
               </p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="#" class="nav-link active">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Create Category</p>
+                <a href="add_product.php" class="nav-link">
+                 <i class="fas fa-plus"></i> 
+                  <p>Add Product</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>All Category</p>
+                <a href="product_list.php" class="nav-link"> 
+                  <i class="fas fa-eye"></i> 
+                  <p>All Products</p>
                 </a>
               </li>
             </ul>
-          </li> -->
+          </li>
             <li class="nav-item">
             <a href="category.php" class="nav-link">
-            <i class="nav-icon fas fa-th"></i>
+            <i class="fas fa-folder"></i>
               <p>
                 Category
               </p>
