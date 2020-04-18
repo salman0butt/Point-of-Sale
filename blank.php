@@ -3,6 +3,10 @@ session_start();
 include_once 'includes/db.php';
 include_once('includes/header.php');
 
+if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
+  header('Location: index.php');
+}
+
  ?>
 
   <!-- Content Wrapper. Contains page content -->
