@@ -22,6 +22,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
     <!-- DataTables -->
   <link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.css">
+  <link rel="stylesheet" href="../../plugins/bootstrap-datepicker-1.9.0-dist_2/bootstrap-datepicker.min.css">
   <style>
     nav.main-header.navbar.navbar-expand.navbar-white.navbar-light {
           background-color: #3c8dbc;
@@ -41,6 +42,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="dist/js/adminlte.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script src="../../plugins/bootstrap-datepicker-1.9.0-dist_2/bootstrap-datepicker.min.js"></script>
 <!-- DataTables -->
 <script src="../../plugins/datatables/jquery.dataTables.js"></script>
 <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
@@ -147,6 +149,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 </a>
               </li>
             </ul>
+          </li>
+              <li class="nav-item">
+            <a href="create_order.php" class="nav-link">
+            <i class="fas fa-folder"></i>
+              <p>
+                Create Order
+              </p>
+            </a>
           </li>
             <li class="nav-item">
             <a href="category.php" class="nav-link">
