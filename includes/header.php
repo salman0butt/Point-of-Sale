@@ -152,13 +152,30 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </li>
             </ul>
           </li>
-              <li class="nav-item">
-            <a href="create_order.php" class="nav-link">
-            <i class="fas fa-folder"></i>
+            <li class="nav-item has-treeview menu-open">
+            <a href="#" class="nav-link">
+              <i class="fas fa-bars"></i>
               <p>
-                Create Order
+                Orders
+                <i class="right fas fa-angle-left"></i>
               </p>
             </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="create_order.php" class="nav-link">
+                 <i class="fas fa-plus"></i> 
+                  <p>Create Order</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                    <a href="orderlist.php" class="nav-link">
+            <i class="fas fa-folder"></i>
+              <p>
+                 Order List
+              </p>
+            </a>
+              </li>
+            </ul>
           </li>
             <li class="nav-item">
             <a href="category.php" class="nav-link">
