@@ -1,4 +1,4 @@
-
+<?php error_reporting(0); ?>
 <!DOCTYPE html>
 <!--
 This is a starter template page. Use this page to start your new project from
@@ -130,6 +130,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </p>
             </a>
           </li>
+                <li class="nav-item">
+            <a href="category.php" class="nav-link">
+           <i class="fas fa-folder-open"></i>
+              <p>
+                Category
+              </p>
+            </a>
+          </li>
           <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">
               <i class="fas fa-bars"></i>
@@ -178,14 +186,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </li>
             </ul>
           </li>
-            <li class="nav-item">
-            <a href="category.php" class="nav-link">
-           <i class="fas fa-folder-open"></i>
-              <p>
-                Category
-              </p>
-            </a>
-          </li>
+      
            <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">
               <i class="fas fa-bars"></i>

@@ -44,6 +44,13 @@ Swal.fire(
     });
     </script>';
         } else {
+               if(empty($image)) {
+              $img_query = $pdo->prepare("SELECT * FROM `products` WHERE `pid` = $edit_id");
+               $img_query->execute();
+               $row=$img_query->fetch(PDO::FETCH_ASSOC);
+               $new_file = $row['pimage'];
+            }
+            
 
             $update = $pdo->prepare("UPDATE `products` SET `p_name`=:p_name, `p_category`=:p_category, `purchase_price`=:purchase_price, `sale_price`=:sale_price, `pstock`=:pstock, `pdescription`=:pdescription, `pimage`=:pimage WHERE `pid` = $edit_id");
 
@@ -53,6 +60,7 @@ Swal.fire(
             $update->bindParam(':sale_price', $sale_price);
             $update->bindParam(':pstock', $stock);
             $update->bindParam(':pdescription', $description);
+
             $update->bindParam(':pimage', $new_file);
 
                 $run = $update->execute();
