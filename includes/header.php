@@ -48,6 +48,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="../../plugins/datatables/jquery.dataTables.js"></script>
 <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
 <script src="../../plugins/select2/js/select2.full.min.js"></script>
+ <script src="Chart.js-2.8.0/dist/Chart.min.js"></script>
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -179,11 +180,36 @@ scratch. This page gets rid of all links and provides the needed markup only.
           </li>
             <li class="nav-item">
             <a href="category.php" class="nav-link">
-            <i class="fas fa-folder"></i>
+           <i class="fas fa-folder-open"></i>
               <p>
                 Category
               </p>
             </a>
+          </li>
+           <li class="nav-item has-treeview menu-open">
+            <a href="#" class="nav-link">
+              <i class="fas fa-bars"></i>
+              <p>
+                Sales Reports
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="table_reports.php" class="nav-link">
+                <i class="fas fa-signal"></i>
+                  <p>Table Reports</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                    <a href="graph_reports.php" class="nav-link">
+            <i class="fas fa-chart-pie"></i>
+              <p>
+                 Graph Reports
+              </p>
+            </a>
+              </li>
+            </ul>
           </li>
           <li class="nav-item">
             <a href="registration.php" class="nav-link">
