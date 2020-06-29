@@ -7,6 +7,21 @@ include_once 'includes/header.php';
 if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
   header('Location: index.php');
 }
+
+if (isset($_POST['add_payment'])) {
+    if (!empty($_POST)) {
+  $payment = $_POST['payment'];
+  $invoice_id = $_POST['invoice_id'];
+  $due = $_POST['due']-$_POST['payment'];
+  $date = date('Y-m-d');
+  $insert_payment=$pdo->prepare("INSERT INTO `payments`(`invoice_id`, `payment`, `due`, `date`) VALUES (:invoice_id,:payment,:due,:date)");
+  $insert_payment->bindParam(':invoice_id', $invoice_id);
+  $insert_payment->bindParam(':payment', $payment);
+  $insert_payment->bindParam(':date', $date);
+  $insert_payment->bindParam(':due', $due);
+  $insert_payment->execute();
+  }
+}
     
 
 ?>
@@ -36,6 +51,7 @@ if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
               <tr>
                 <th>Invoice ID</th>
                 <th>CustomerName</th>
+                <th>Grunter</th>
                 <th>OrderDate</th>
                 <th>Total</th>
                 <th>Paid</th>
@@ -53,20 +69,31 @@ if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
     $select->execute();
             
 while($row=$select->fetch(PDO::FETCH_OBJ)  ){
-    
+      $invoice_id = $row->invoice_id;
+      $all_paid = 0;
+    $previous_payment=$pdo->prepare("SELECT * FROM `payments` WHERE `invoice_id`=:invoice_id"); $previous_payment->bindParam(':invoice_id', $invoice_id);
+      $previous_payment->execute();
+      while($row_data=$previous_payment->fetch(PDO::FETCH_OBJ)  ){
+        $all_paid = $all_paid + $row_data->payment;     
+       }
+       $all_paid = $all_paid+$row->paid;
+       $all_due = $row->total-$all_paid;
     echo'
     <tr>
     <td>'.$row->invoice_id.'</td>
     <td>'.$row->customer_name.'</td>
+    <td>'.$row->grunter.'</td>
     <td>'.$row->order_date.'</td>
-    <td>'.$row->total.'</td>
-    <td>'.$row->paid.'</td>
-    <td>'.$row->due.'</td>
-    <td>'.$row->payment_type.'</td>
+    <td><span class="badge badge-info">'.$row->total.'</span></td>
+    <td><span class="badge badge-success">'.$all_paid.'</span></td>
+    <td><span class="badge badge-danger">'.$all_due.'</span></td>
+    <td><span class="badge badge-primary">'.$row->payment_type.'</span></td>
     
     
     <td>
-<a href="invoice_80mm.php?id='.$row->invoice_id.'" class="btn btn-warning" role="button" target="_blank"><i class="fas fa-print" data-toggle="tooltip"  title="Print Invoice"></i></span></a>   
+  <button id="add_payment_btn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-id="'.$row->invoice_id.'" data-due="'.$all_due.'"data-whatever="@mdo">Add Payment </button> 
+<a href="invoice_db.php?id='.$row->invoice_id.'" class="btn btn-success" role="button" target="_blank"><i class="fas fa-print" data-toggle="tooltip"  title="Print Invoice"></i></span></a>  
+
     
     </td>
     
@@ -94,6 +121,35 @@ while($row=$select->fetch(PDO::FETCH_OBJ)  ){
     </div>
   </section>
   <!-- /.content -->
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add payment</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="" method="POST">
+          <div class="form-group">
+            <label for="payment" class="col-form-label">Price:</label>
+            <input type="number" class="form-control" id="payment" name="payment">
+            <input type="hidden" class="form-control" id="invoice_id" name="invoice_id">
+            <input type="hidden" class="form-control" id="due_id" name="due">
+          </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <input type="submit" class="btn btn-primary" name="add_payment" value="Add Payment">
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
 </div>
 <!-- /.content-wrapper -->
 <script>
@@ -111,6 +167,11 @@ $(document).ready(function() {
   $('[data-toggle="tooltip"]').tooltip();
 });
 
+$(document).on('click', '#add_payment_btn', function() {
+  console.log($(this));
+  $('#invoice_id').val($(this)[0].attributes[5].nodeValue);
+  $('#due_id').val($(this)[0].attributes[6].nodeValue);
+});
 
 $(document).ready(function() {
   $('.btndelete').click(function() {
@@ -154,6 +215,11 @@ $(document).ready(function() {
 
 });
 
+</script>
+<script>
+    if ( window.history.replaceState ) {
+        window.history.replaceState( null, null, window.location.href );
+    }
 </script>
 <?php
 

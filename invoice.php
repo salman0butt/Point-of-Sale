@@ -113,11 +113,11 @@ $pdf->Cell(30,8,'SubTotal',1,0,'C',true);
 $pdf->Cell(40,8,'600',1,1,'C');
 
 
-$pdf->SetFont('Arial','B',12);
-$pdf->Cell(100,8,'',0,0,'L');   //190
-$pdf->Cell(20,8,'',0,0,'C');
-$pdf->Cell(30,8,'Tax',1,0,'C',true);
-$pdf->Cell(40,8,'60',1,1,'C');
+// $pdf->SetFont('Arial','B',12);
+// $pdf->Cell(100,8,'',0,0,'L');   //190
+// $pdf->Cell(20,8,'',0,0,'C');
+// $pdf->Cell(30,8,'Tax',1,0,'C',true);
+// $pdf->Cell(40,8,'60',1,1,'C');
 
 $pdf->SetFont('Arial','B',12);
 $pdf->Cell(100,8,'',0,0,'L');   //190

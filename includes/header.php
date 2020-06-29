@@ -24,6 +24,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.css">
   <link rel="stylesheet" href="../../plugins/select2/css/select2.min.css">
   <link rel="stylesheet" href="../../plugins/bootstrap-datepicker-1.9.0-dist_2/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.2/css/buttons.dataTables.min.css">
   <style>
     nav.main-header.navbar.navbar-expand.navbar-white.navbar-light {
           background-color: #3c8dbc;
@@ -49,6 +50,15 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
 <script src="../../plugins/select2/js/select2.full.min.js"></script>
  <script src="Chart.js-2.8.0/dist/Chart.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.flash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.print.min.js"></script>
+
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -138,6 +148,15 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </p>
             </a>
           </li>
+                <li class="nav-item">
+            <a href="customers.php" class="nav-link">
+         <i class="fas fa-users"></i>
+              <p>
+                Customers
+              </p>
+            </a>
+          </li>
+
           <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">
               <i class="fas fa-bars"></i>
@@ -211,6 +230,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
             </a>
               </li>
             </ul>
+          </li>
+                  <li class="nav-item">
+            <a href="single_customer.php" class="nav-link">
+              <i class="fas fa-users"></i>
+              <p>
+                Customer Ledger
+              </p>
+            </a>
           </li>
           <li class="nav-item">
             <a href="registration.php" class="nav-link">

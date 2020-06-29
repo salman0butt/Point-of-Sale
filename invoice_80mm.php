@@ -44,6 +44,13 @@ $pdf->Cell(20,4,'Bill To :',0,0,'');
 $pdf->SetFont('Courier','BI',8);
 $pdf->Cell(40,4,$row->customer_name,0,1,'');
 
+$pdf->SetFont('Arial','BI',8);
+$pdf->Cell(20,4,'Care of(Grunter) :',0,0,'');
+
+
+$pdf->SetFont('Courier','BI',8);
+$pdf->Cell(45,4,$row->grunter,0,1,'C');
+
 
 $pdf->SetFont('Arial','BI',8);
 $pdf->Cell(20,4,'Invoice no :',0,0,'');
@@ -81,10 +88,11 @@ $select->execute();
 while($item=$select->fetch(PDO::FETCH_OBJ)){
     $pdf->SetX(7);
   $pdf->SetFont('Helvetica','B',8);
-$pdf->Cell(34,5,$item->product_name,1,0,'L');   
+$pdf->Cell(100,8,$item->product_name,1,0,'L');   //190 
 $pdf->Cell(11,5,$item->qty,1,0,'C');
 $pdf->Cell(8, 5,$item->price,1,0,'C');
 $pdf->Cell(12,5,$item->price*$item->qty,1,1,'C');  
+$pdf->Ln(2);
     
 }
 
@@ -108,8 +116,8 @@ $pdf->SetX(7);
 $pdf->SetFont('courier','B',8);
 $pdf->Cell(20,5,'',0,0,'L');   //190
 //$pdf->Cell(20,5,'',0,0,'C');
-$pdf->Cell(25,5,'TAX(5%)',1,0,'C');
-$pdf->Cell(20,5,$row->tax,1,1,'C');
+// $pdf->Cell(25,5,'TAX(5%)',1,0,'C');
+// $pdf->Cell(20,5,$row->tax,1,1,'C');
 
 $pdf->SetX(7);
 $pdf->SetFont('courier','B',8);

@@ -44,6 +44,20 @@ function fill_products($pdo, $pid = '') {
 	}
 
 }
+function customers($pdo) {
+
+  $output = '';
+  $select = $pdo->prepare("SELECT * FROM `customers` ORDER BY `customer_name` ASC");
+  $select->execute();
+  $result = $select->fetchAll();
+  // var_dump($result);
+  foreach ($result as $row) {
+    $output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '">' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
+  }
+
+  return $output;
+
+} 
 
 $id = $_GET['id'];
 $select = $pdo->prepare("SELECT * FROM `invoice` WHERE `invoice_id` =$id");
@@ -69,25 +83,33 @@ $row_invoice_details = $select->fetchAll(PDO::FETCH_ASSOC);
 if (isset($_POST['btnupdateorder'])) {
 
 //Steps for btnupdateorder button.
+$customer_name = $_POST['customer_name'];
+  $customer_id = $_POST['customer_id'];
 
-// 1) Get values from text feilds and from array in variables.
-	$txt_customer_name = $_POST['customer_name'];
-	$txt_order_date = date('Y-m-d', strtotime($_POST['order_date']));
-	$txt_subtotal = $_POST["sub-total"];
-	$txt_tax = $_POST['tax'];
-	$txt_discount = $_POST['discount'];
-	$txt_total = $_POST['total'];
-	$txt_paid = $_POST['paid'];
-	$txt_due = $_POST['due'];
-	$txt_payment_type = $_POST['rb'];
-	////////////////////////////////
+  $grunters = $pdo->prepare("SELECT * FROM `customers` Where id=:customer_id");
+  $grunters->bindParam(':customer_id', $customer_id);
+  $grunters->execute();
+  $row = $grunters->fetch(PDO::FETCH_OBJ);
 
-	$arr_productid = $_POST['product_id'];
-	$arr_productname = $_POST['product_name'];
-	$arr_stock = $_POST['stock'];
-	$arr_qty = $_POST['qty'];
-	$arr_price = $_POST['price'];
-	$arr_total = $_POST['total'];
+  $grunter = $row->grunter_name;
+  $order_date = date('Y-m-d', strtotime($_POST['order_date']));
+  $subtotal = $_POST["sub-total"];
+  $tax = $_POST['tax'];
+  $discount = $_POST['discount'];
+  $total = $_POST['total'];
+  $paid = $_POST['paid'];
+  $due = $_POST['due'];
+  $payment_type = $_POST['rb'];
+
+ 
+  $arr_productid = $_POST['product_id'];
+  $arr_productname = $_POST['product_name'];
+  $arr_productiemi = $_POST['product_imei'];
+  echo '<script>console.log("'.$arr_productiemi.');</script>';
+  $arr_stock = $_POST['stock'];
+  $arr_qty = $_POST['qty'];
+  $arr_price = $_POST['price'];
+  $arr_total = $_POST['total'];
 
 // 2) Write update query for tbl_product stock.
 
@@ -272,7 +294,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
 
 	echo '<td><input type="text" class="form-control stock" name="stock[]" value="' . $row_product['pstock'] . '" readonly></td>';
 	echo '<td><input type="text" class="form-control price" name="price[]" value="' . $row_product['sale_price'] . '" readonly></td>';
-	echo '<td><input type="number" min="1" class="form-control qty" name="qty[]" value="' . $item_invoice_details['qty'] . '" ></td>';
+	echo '<td><input type="number" min="1" id="qty" class="form-control qty" name="qty[]" onclick="calculateQtyPrice($(this))" value="' . $item_invoice_details['qty'] . '" ></td>';
 	echo '<td><input type="text" class="form-control total" name="total[]" value="' . $row_product['sale_price'] * $item_invoice_details['qty'] . '" readonly></td>';
 	echo '<td><center><button type="button" name="remove" id="btn_remove" class="btn btn-danger btn-sm btn_remove"><i class="fas fa-times"></i></button><center></td></center>';
 
@@ -399,6 +421,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
 <script>
 jQuery(document).ready(function($) {
 
+
   $('.datepicker').datepicker({
     format: 'mm/dd/yyyy'
   });
@@ -415,29 +438,8 @@ jQuery(document).ready(function($) {
     html += '</tr>';
     $('#produt_table').append(html);
 
-    //initialze select 2 plugin
+        //initialze select 2 plugin
     $('.product_id').select2();
-
-    $(document).on('change',".product_id", function(e) {
-      e.stopPropagation();
-      var product_id = this.value;
-      var tr = $(this).parent().parent();
-      $.ajax({
-        url: "handlers/get_product.php",
-        method: 'get',
-        data: { id: product_id },
-        success: function(response) {
-          data = JSON.parse(response);
-          tr.find(".pname").val(data["p_name"]);
-          tr.find(".stock").val(data["pstock"]);
-          tr.find(".price").val(data["sale_price"]);
-          tr.find(".qty").val(1);
-          tr.find(".total").val(tr.find('.qty').val() * tr.find('.price').val());
-          calculateTotal();
-        }
-      });
-
-    });
 
   });
 
@@ -478,7 +480,7 @@ function calculateTotal(disc = 0, paid = 0) {
   $('.total').each(function() {
     subtotal = subtotal + ($(this).val() * 1);
   });
-  tax = 0.05 * subtotal;
+  tax = 0;
   net_total = tax + subtotal;
   net_total = net_total - discount;
   due = net_total - paid_amt;
@@ -501,11 +503,34 @@ $('#paid').keyup(function(event) {
   var discount = $('#discount').val();
   calculateTotal(discount, paid);
 });
+    //initialze select 2 plugin
+    $('.product_id').select2();
 
+    $(document).on('change',".product_id", function(e) {
+      e.stopPropagation();
+      var product_id = this.value;
+      var tr = $(this).parent().parent();
+      $.ajax({
+        url: "handlers/get_product.php",
+        method: 'get',
+        data: { id: product_id },
+        success: function(response) {
+          data = JSON.parse(response);
+          tr.find(".pname").val(data["p_name"]);
+          tr.find(".stock").val(data["pstock"]);
+          tr.find(".price").val(data["sale_price"]);
+          tr.find(".qty").val(1);
+          tr.find(".total").val(tr.find('.qty').val() * tr.find('.price').val());
+          calculateTotal();
+        }
+      });
+
+    });
 
 //lecture no 12 sales section
 
 </script>
+
 <?php
 include_once 'includes/footer.php';
 ob_end_flush();
