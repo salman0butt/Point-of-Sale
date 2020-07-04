@@ -71,6 +71,7 @@ if (isset($_POST['add_payment'])) {
 while($row=$select->fetch(PDO::FETCH_OBJ)  ){
       $invoice_id = $row->invoice_id;
       $all_paid = 0;
+      $all_due = 0;
     $previous_payment=$pdo->prepare("SELECT * FROM `payments` WHERE `invoice_id`=:invoice_id"); $previous_payment->bindParam(':invoice_id', $invoice_id);
       $previous_payment->execute();
       while($row_data=$previous_payment->fetch(PDO::FETCH_OBJ)  ){
@@ -91,10 +92,10 @@ while($row=$select->fetch(PDO::FETCH_OBJ)  ){
     
     
     <td>
-  <button id="add_payment_btn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-id="'.$row->invoice_id.'" data-due="'.$all_due.'"data-whatever="@mdo">Add Payment </button> 
-<a href="invoice_db.php?id='.$row->invoice_id.'" class="btn btn-success" role="button" target="_blank"><i class="fas fa-print" data-toggle="tooltip"  title="Print Invoice"></i></span></a>  
+  <button id="add_payment_btn" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModal" data-id="'.$row->invoice_id.'" data-due="'.$all_due.'"data-whatever="@mdo">Add Payment </button> 
+<a href="invoice_db.php?id='.$row->invoice_id.'" class="btn btn-success btn-sm" role="button" target="_blank"><i class="fas fa-print" data-toggle="tooltip"  title="Print Invoice"></i></span></a>  
+<a href="invoice_80mm.php?id='.$row->invoice_id.'" class="btn btn-warning btn-sm" role="button" target="_blank"><i class="fas fa-print" data-toggle="tooltip"  title="Print Invoice"></i></span></a> 
 
-    
     </td>
     
     

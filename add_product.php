@@ -5,6 +5,8 @@ include_once 'includes/header.php';
 
 if (isset($_POST['add_product'])) {
 
+  $product_imeis = explode(',', $_POST['product_imei']);
+
 	$product_name = $_POST['product_name'];
 	$product_category = $_POST['product_category'];
 	$purchase_price = $_POST['purchase_price'];
@@ -19,6 +21,9 @@ if (isset($_POST['add_product'])) {
 	$image_extension = strtolower(end($image_extension));
 
 	$new_file = uniqid() . '.' . $image_extension;
+  if(empty($image)){
+    $new_file = 'no-image.png';
+  }
 
 	$store = "uploads/" . $new_file;
 
@@ -46,8 +51,20 @@ Swal.fire(
 			$insert->bindParam(':pdescription', $description);
 			$insert->bindParam(':pimage', $new_file);
 
-			if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
 				$run = $insert->execute();
+        // $insert->debugDumpParams();
+        $prod_id = $pdo->lastInsertId();
+        // print_r($prod_id);
+        
+        foreach($product_imeis as $product_imei){
+        $insert_imei = $pdo->prepare("INSERT INTO `product_imei`(`product_id`, `imei`)  VALUES(:product_id,:product_imei)");
+        $insert_imei->bindParam(':product_id', $prod_id);
+        $insert_imei->bindParam(':product_imei', $product_imei);
+        $insert_imei->execute();
+        // $insert_imei->debugDumpParams();
+      }
+
+			if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
       
 				if (move_uploaded_file($tmp_name, $store)) {
 					echo '<script>
@@ -147,8 +164,13 @@ while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
                   </div>
                   <div class="form-group">
                     <label for="description">Description</label>
-                   <textarea name="description" id="description" cols="30" rows="5" class="form-control" placeholder="Enter Description"></textarea>
+                   <textarea name="description" id="description" cols="30" rows="2" class="form-control" placeholder="Enter Description"></textarea>
                   </div>
+                   <div class="form-group">
+                    <label for="product_imei">Poduct IMEI</label>
+                   <textarea name="product_imei" id="product_imei" cols="30" rows="2" class="form-control" placeholder="Enter IMEI"></textarea>
+                  </div>
+
                   <div class="form-group">
                     <label for="image">Upload image</label>
                    <input type="file" name="myfile" id="image" class="form-control">

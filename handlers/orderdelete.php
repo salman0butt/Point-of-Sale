@@ -19,12 +19,15 @@ $sql = "delete `invoice` , `invoice_details` FROM `invoice` INNER JOIN `invoice_
 $delete = $pdo->prepare($sql);
  $delete->bindParam(':id', $id);
 
-if ($delete->execute()) {
-	// $delete->debugDumpParams();
-		echo 'deleted';
+if (!$delete->execute()) {
+$sql_again = "delete FROM `invoice` WHERE invoice_id=:id";
+
+$delete_again = $pdo->prepare($sql_again);
+ $delete_again->bindParam(':id', $id);
+ $delete_again->execute();
 } else {
 
-	echo 'Error in Deleting';
+	echo 'DELETED';
 }
 
 ?>

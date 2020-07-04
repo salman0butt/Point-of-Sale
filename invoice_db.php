@@ -8,6 +8,10 @@ $select=$pdo->prepare("select * from `invoice` where invoice_id=$id");
 $select->execute();
 $row=$select->fetch(PDO::FETCH_OBJ);
 
+$cutsomer_select=$pdo->prepare("select * from `customers` where id=$row->customer_id");
+$cutsomer_select->execute();
+$customer=$cutsomer_select->fetch(PDO::FETCH_OBJ);
+// var_dump($row->customer_id);
 
 $pdf = new FPDF('p','mm','A4');
 
@@ -19,6 +23,8 @@ $pdf->AddPage();
 $pdf->SetFont('Arial','B',22);
 
 $pdf->Cell(190,10,'MURTAZA MOBILE',1,1,'C');
+$pdf->Ln(2);
+$pdf->Image('fpdf/logo.png',170,30,25);
 
 $pdf->Ln(10); // line break
 //Cell(width , height , text , border , end line , [align] )
@@ -26,6 +32,7 @@ $pdf->SetFont('Arial','B',16);
 $pdf->Cell(80,10,'CYBARG INC',0,0,'');
 
 
+// $pdf->Ln(10);
 $pdf->SetFont('Arial','B',13);
 $pdf->Cell(112,10,'INVOICE',0,1,'C');
 
@@ -55,20 +62,50 @@ $pdf->Cell(80,5,'E-mail Address : Shamraizbutt@gmail.com',0,1,'');
 $pdf->Ln(10); // line break
 
 
-$pdf->SetFont('Arial','B',12);
-$pdf->Cell(20,10,'Bill To :',0,0,'');
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Bill To :',0,0,'');
 
 
-$pdf->SetFont('Courier','B',14);
-$pdf->Cell(50,10,$row->customer_name,0,1,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$row->customer_name,0,1,'');
+
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Customer Contact no:',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$customer->contact_no,0,1,'');
+
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Customer Address :',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$customer->customer_address,0,1,'');
+
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Customer Cnic:',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$customer->customer_cnic,0,1,'');
+
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Care Of(Grunter) :',0,0,'');
 
 
-$pdf->SetFont('Arial','B',12);
-$pdf->Cell(20,10,'Care Of(Grunter) :',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(40,5,$row->grunter." (".$customer->father_name.")",0,1,'');
 
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Grunter Contact no:',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$customer->grunter_contact_no,0,1,'');
 
-$pdf->SetFont('Courier','B',14);
-$pdf->Cell(40,10,$row->grunter,0,1,'R');
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Grunter Address:',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$customer->grunter_address,0,1,'');
+
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(40,5,'Grunter Cnic:',0,0,'');
+$pdf->SetFont('Courier','B',8);
+$pdf->Cell(50,5,$customer->grunter_cnic,0,1,'');
+
 
 
 $pdf->Ln(5); // line break

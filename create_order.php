@@ -63,6 +63,13 @@ if (isset($_POST['save_order'])) {
   $arr_productiemi = $_POST['product_imei'];
   echo '<script>console.log("'.$arr_productiemi.');</script>';
   $arr_stock = $_POST['stock'];
+  foreach($arr_stock as $stock){
+    if($stock == 0){
+    echo '<script>alert("PRODUCT OUT OF STOCK")</script>';
+     // header('location:orderlist.php');    
+    return false;
+  }
+  }
   $arr_qty = $_POST['qty'];
   $arr_price = $_POST['price'];
   $arr_total = $_POST['total'];
@@ -219,7 +226,7 @@ if (isset($_POST['save_order'])) {
                     <label for="product_name">Sub Total</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" class="form-control" name="sub-total" id="sub-total" readonly placeholder="">
                     </div>
@@ -228,7 +235,7 @@ if (isset($_POST['save_order'])) {
                     <label for="product_name">Tax (5%)</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" name="tax" readonly id="tax" placeholder="">
                     </div>
@@ -237,7 +244,7 @@ if (isset($_POST['save_order'])) {
                     <label for="product_name">Discount</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" name="discount" id="discount" placeholder="">
                     </div>
@@ -248,7 +255,7 @@ if (isset($_POST['save_order'])) {
                     <label for="product_name">Total</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" readonly name="total" id="total" placeholder="">
                     </div>
@@ -257,7 +264,7 @@ if (isset($_POST['save_order'])) {
                     <label for="product_name">Paid</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" name="paid" id="paid" placeholder="">
                     </div>
@@ -266,7 +273,7 @@ if (isset($_POST['save_order'])) {
                     <label for="product_name">Due</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" readonly name="due" id="due" placeholder="">
                     </div>
@@ -318,10 +325,10 @@ jQuery(document).ready(function($) {
     html += '<tr>';
     html += '<td><input type="hidden" class="form-control pname" name="product_name[]" readonly/></td>';
     html += '<td><select class="form-control product_id" style="width:250px;" name="product_id[]"> <option value="">Select Option</option> <?php echo fill_products($pdo); ?> </select></td>';
-    html += '<td><input type="text" class="form-control imei" name="product_imei[]"/></td>';
+    html += '<td><textarea type="text" class="form-control imei" name="product_imei[]" id="p_imei"/></textarea></td>';
     html += '<td><input type="text" class="form-control stock" name="stock[]" readonly/></td>';
     html += '<td><input type="text" class="form-control price" name="price[]" readonly/></td>';
-    html += '<td><input type="number" min="1" id="qty" onclick="calculateQtyPrice($(this))" class="form-control qty" name="qty[]"/></td>';
+    html += '<td><input type="number" min="1" id="qty" onkeyup="calculateQtyPrice($(this))" onclick="calculateQtyPrice($(this))" class="form-control qty" name="qty[]"/></td>';
     html += '<td><input type="text" class="form-control total" name="total[]" readonly/></td>';
     html += '<td><center> <button type="button" name="remove" id="btn_remove" class="btn btn-danger btn-sm btn_remove"><i class="fas fa-times"></i></button></center></td>';
     html += '</tr>';
@@ -340,8 +347,13 @@ jQuery(document).ready(function($) {
         method: 'get',
         data: { id: product_id },
         success: function(response) {
-          data = JSON.parse(response);
-           tr.find(".pname").val(data["p_name"]);
+          res = JSON.parse(response);
+              data = res.response;
+              // console.log(res.imei);
+              // console.log(response.imei);
+
+          tr.find("#p_imei").val(res.imei);
+          tr.find(".pname").val(data["p_name"]);
           tr.find(".stock").val(data["pstock"]);
           tr.find(".price").val(data["sale_price"]);
           tr.find(".qty").val(1);

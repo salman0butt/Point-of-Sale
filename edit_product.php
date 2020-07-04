@@ -11,8 +11,6 @@ if (isset($_GET['edit_id'])) {
 }
 
 if (isset($_POST['update_product'])) {
-
-
     $product_name = $_POST['product_name'];
      $product_category = $_POST['product_category'];
     $purchase_price = $_POST['purchase_price'];
@@ -64,6 +62,7 @@ Swal.fire(
             $update->bindParam(':pimage', $new_file);
 
                 $run = $update->execute();
+          
             if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
 
                 if (move_uploaded_file($tmp_name, $store)) {

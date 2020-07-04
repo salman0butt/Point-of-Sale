@@ -156,6 +156,15 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </p>
             </a>
           </li>
+             <li class="nav-item">
+            <a href="suppliers.php" class="nav-link">
+         <i class="fas fa-users"></i>
+              <p>
+                Suppliers
+              </p>
+            </a>
+          </li>
+
 
           <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">
@@ -180,7 +189,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </li>
             </ul>
           </li>
-            <li class="nav-item has-treeview menu-open">
+                    <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">
               <i class="fas fa-bars"></i>
               <p>
@@ -205,6 +214,30 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </li>
             </ul>
           </li>
+               <li class="nav-item has-treeview menu-open">
+            <a href="#" class="nav-link">
+              <i class="fas fa-bars"></i>
+              <p>
+                Purchase
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="create_purchase.php" class="nav-link">
+                 <i class="fas fa-plus"></i> 
+                  <p>Add Purchase</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="purchase_list.php" class="nav-link"> 
+                  <i class="fas fa-eye"></i> 
+                  <p>All Purchase</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+  
       
            <li class="nav-item has-treeview menu-open">
             <a href="#" class="nav-link">

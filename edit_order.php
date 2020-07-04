@@ -44,7 +44,7 @@ function fill_products($pdo, $pid = '') {
 	}
 
 }
-function customers($pdo) {
+function customers($pdo,$cid) {
 
   $output = '';
   $select = $pdo->prepare("SELECT * FROM `customers` ORDER BY `customer_name` ASC");
@@ -52,7 +52,7 @@ function customers($pdo) {
   $result = $select->fetchAll();
   // var_dump($result);
   foreach ($result as $row) {
-    $output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '">' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
+    $output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '" '.($cid==$row["id"] ? 'selected' : '').'>' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
   }
 
   return $output;
@@ -66,6 +66,7 @@ $select->execute();
 $row = $select->fetch(PDO::FETCH_ASSOC);
 
 $customer_name = $row['customer_name'];
+$cid = $row['customer_id'];
 $order_date = date('Y-m-d', strtotime($row['order_date']));
 $subtotal = $row["subtotal"];
 $tax = $row['tax'];
@@ -110,6 +111,9 @@ $customer_name = $_POST['customer_name'];
   $arr_qty = $_POST['qty'];
   $arr_price = $_POST['price'];
   $arr_total = $_POST['total'];
+  $arr_date = $_POST['order_date'];
+
+
 
 // 2) Write update query for tbl_product stock.
 
@@ -126,21 +130,24 @@ $customer_name = $_POST['customer_name'];
 	$delete_invoice_details->execute();
 
 	// 4) Write update query for tbl_invoice table data.
-	$update_invoice = $pdo->prepare("update invoice set customer_name=:cust,order_date=:orderdate,subtotal=:stotal,tax=:tax,discount=:disc,total=:total,paid=:paid,due=:due,payment_type=:ptype where invoice_id=$id");
+	$update_invoice = $pdo->prepare("update invoice set customer_name=:cust,customer_id=:cust_id ,order_date=:orderdate,subtotal=:stotal,tax=:tax,discount=:disc,total=:total,paid=:paid,due=:due,payment_type=:ptype where invoice_id=:id");
 
-	$update_invoice->bindParam(':cust', $txt_customer_name);
-	$update_invoice->bindParam(':orderdate', $txt_order_date);
-	$update_invoice->bindParam(':stotal', $txt_subtotal);
-	$update_invoice->bindParam(':tax', $txt_tax);
-	$update_invoice->bindParam(':disc', $txt_discount);
-	$update_invoice->bindParam(':total', $txt_total);
-	$update_invoice->bindParam(':paid', $txt_paid);
-	$update_invoice->bindParam(':due', $txt_due);
-	$update_invoice->bindParam(':ptype', $txt_payment_type);
+	$update_invoice->bindParam(':cust', $customer_name);
+  $update_invoice->bindParam(':cust_id', $customer_id);
+	$update_invoice->bindParam(':orderdate', $order_date);
+	$update_invoice->bindParam(':stotal', $subtotal);
+	$update_invoice->bindParam(':tax', $tax);
+	$update_invoice->bindParam(':disc', $discount);
+	$update_invoice->bindParam(':total', $total);
+	$update_invoice->bindParam(':paid', $paid);
+	$update_invoice->bindParam(':due', $due);
+	$update_invoice->bindParam(':ptype', $payment_type);
+  $update_invoice->bindParam(':id', $id);
 
 	$update_invoice->execute();
 
 	$invoice_id = $pdo->lastInsertId();
+
 	if ($invoice_id != null) {
 
 		for ($i = 0; $i < count($arr_productid); $i++) {
@@ -151,8 +158,7 @@ $customer_name = $_POST['customer_name'];
 			$selectpdt->execute();
 
 			while ($rowpdt = $selectpdt->fetch(PDO::FETCH_OBJ)) {
-
-				$db_stock[$i] = $rowpdt->pstock;
+       	$db_stock[$i] = $rowpdt->pstock;
 
 				$rem_qty = $db_stock[$i] - $arr_qty[$i];
 
@@ -173,16 +179,19 @@ $customer_name = $_POST['customer_name'];
 
 			// 7) Write insert query for tbl_invoice_details for insert new records.
 
-			$insert = $pdo->prepare("insert into invoice_details(invoice_id,product_id,product_name,qty,price,order_date) values(:invid,:pid,:pname,:qty,:price,:orderdate)");
+		 $insert = $pdo->prepare("insert into `invoice_details`(`invoice_id`, `product_id`, `product_name`, `product_imei`, `qty`, `price`, `order_date`) values(:invid,:pid,:pname,:imei,:qty,:price,:orderdate)");
 
-			$insert->bindParam(':invid', $id);
-			$insert->bindParam(':pid', $arr_productid[$i]);
-			$insert->bindParam(':pname', $arr_productname[$i]);
-			$insert->bindParam(':qty', $arr_qty[$i]);
-			$insert->bindParam(':price', $arr_price[$i]);
-			$insert->bindParam(':orderdate', $txt_order_date);
+      $insert->bindParam(':invid', $id);
+      $insert->bindParam(':pid', $arr_productid[$i]);
+      $insert->bindParam(':pname', $arr_productname[$i]);
+      $insert->bindParam(':imei', $arr_productiemi[$i]);
+      $insert->bindParam(':qty', $arr_qty[$i]);
+      $insert->bindParam(':price', $arr_price[$i]);
+      $insert->bindParam(':orderdate', $order_date);
 
 			$insert->execute();
+    //$insert->debugDumpParams();
+
 
 		}
 
@@ -192,6 +201,7 @@ $customer_name = $_POST['customer_name'];
 	}
 }
 ?>
+
 <style type="text/css" media="screen">
 .select2-selection {
   padding: 20px !important;
@@ -209,12 +219,12 @@ $customer_name = $_POST['customer_name'];
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1 class="m-0 text-dark">Create Order</h1>
+          <h1 class="m-0 text-dark">Edit Order</h1>
         </div><!-- /.col -->
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="#">Dasboard</a></li>
-            <li class="breadcrumb-item active">Create Order</li>
+            <li class="breadcrumb-item active">Edit Order</li>
           </ol>
         </div><!-- /.col -->
       </div><!-- /.row -->
@@ -228,7 +238,7 @@ $customer_name = $_POST['customer_name'];
         <div class="col-lg-12">
           <div class="card card-primary">
             <div class="card-header">
-              <h3 class="card-title">Create Order</h3>
+              <h3 class="card-title">Edit Order</h3>
             </div>
             <form action="" method="POST" enctype="multipart/form-data">
               <div class="card-body row">
@@ -239,10 +249,9 @@ $customer_name = $_POST['customer_name'];
                       <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-users"></i></span>
                       </div>
-                      <input type="text" name="customer_name" class="form-control" value="<?php if (isset($customer_name)) {
-	echo $customer_name;
-}
-?>" placeholder="Customer Name">
+                      <select class="form-control customer" id="customer_name" name="customer_name"> <option value="">Select Option</option> <?php echo customers($pdo,$cid); ?> </select>
+                    <input type="hidden" name="customer_id" id="customer_id" value="<?php echo $cid; ?>">
+             
                     </div>
                   </div>
                 </div>
@@ -269,6 +278,7 @@ $customer_name = $_POST['customer_name'];
                         <tr>
                           <td>#</td>
                           <td>Search Product</td>
+                          <td>IMEI</td>
                           <td>Stock</td>
                           <td>Price</td>
                           <td>Enter Quantity</td>
@@ -279,18 +289,18 @@ $customer_name = $_POST['customer_name'];
                       <tbody id="produt_table">
                         <?php
 foreach ($row_invoice_details as $item_invoice_details) {
-
+// print_r($item_invoice_details);
 	$select = $pdo->prepare("select * from `products` where pid ='{$item_invoice_details['product_id']}'");
 	$select->execute();
 
 	$row_product = $select->fetch(PDO::FETCH_ASSOC);
-
 	?>
                         <tr>
                           <?php
 echo '<td><input type="hidden" class="form-control pname" name="product_name[]" value="' . $row_product['p_name'] . '" readonly></td>';
 
 	echo '<td><select id="product_id" class="form-control product_id" name="product_id[]" style="width: 250px";><option value="">Select Option</option>' . fill_products($pdo, $item_invoice_details['product_id']) . ' </select></td>';
+  echo '<td><input type="text" class="form-control imei" value="'.$item_invoice_details['product_imei'].'" name="product_imei[]"/></td>';
 
 	echo '<td><input type="text" class="form-control stock" name="stock[]" value="' . $row_product['pstock'] . '" readonly></td>';
 	echo '<td><input type="text" class="form-control price" name="price[]" value="' . $row_product['sale_price'] . '" readonly></td>';
@@ -312,7 +322,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
                     <label for="product_name">Sub Total</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" class="form-control" name="sub-total" id="sub-total" readonly value="<?php if (isset($subtotal)) {
 	echo $subtotal;
@@ -324,7 +334,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
                     <label for="product_name">Tax (5%)</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" name="tax" readonly id="tax" value="<?php if (isset($tax)) {
 	echo $tax;
@@ -336,7 +346,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
                     <label for="product_name">Discount</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" name="discount" id="discount" value="<?php if (isset($discount)) {
 	echo $discount;
@@ -350,7 +360,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
                     <label for="product_name">Total</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" readonly name="total" id="total" value="<?php if (isset($total)) {
 	echo $total;
@@ -362,7 +372,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
                     <label for="product_name">Paid</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" name="paid" id="paid" value="<?php if (isset($paid)) {
 	echo $paid;
@@ -374,7 +384,7 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
                     <label for="product_name">Due</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="input-group-text">R.S</span>
                       </div>
                       <input type="number" min="0" class="form-control" readonly name="due" id="due" value="<?php if (isset($due)) {
 	echo $due;
@@ -420,7 +430,12 @@ echo '<td><input type="hidden" class="form-control pname" name="product_name[]" 
 
 <script>
 jQuery(document).ready(function($) {
-
+  $('.customer').select2();
+     $('#customer_name').on('select2:select', function(e) {
+    var data = e.params.data.element.dataset.id;
+    console.log(data);
+    $('#customer_id').val(data);
+   });
 
   $('.datepicker').datepicker({
     format: 'mm/dd/yyyy'
@@ -430,6 +445,7 @@ jQuery(document).ready(function($) {
     html += '<tr>';
     html += '<td><input type="hidden" class="form-control pname" name="product_name[]" readonly/></td>';
     html += '<td><select class="form-control product_id" style="width:250px;" name="product_id[]"> <option value="">Select Option</option> <?php echo fill_products($pdo); ?> </select></td>';
+    html += '<td><input type="text" class="form-control imei" name="product_imei[]"/></td>';
     html += '<td><input type="text" class="form-control stock" name="stock[]" readonly/></td>';
     html += '<td><input type="text" class="form-control price" name="price[]" readonly/></td>';
     html += '<td><input type="number" min="1" id="qty" onclick="calculateQtyPrice($(this))" class="form-control qty" name="qty[]"/></td>';

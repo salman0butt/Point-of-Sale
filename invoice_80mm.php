@@ -86,14 +86,12 @@ $select=$pdo->prepare("select * from invoice_details where invoice_id=$id");
 $select->execute();
 
 while($item=$select->fetch(PDO::FETCH_OBJ)){
-    $pdf->SetX(7);
+  $pdf->SetX(7);
   $pdf->SetFont('Helvetica','B',8);
-$pdf->Cell(100,8,$item->product_name,1,0,'L');   //190 
-$pdf->Cell(11,5,$item->qty,1,0,'C');
-$pdf->Cell(8, 5,$item->price,1,0,'C');
-$pdf->Cell(12,5,$item->price*$item->qty,1,1,'C');  
-$pdf->Ln(2);
-    
+  $pdf->Cell(34,5,$item->product_name,1,0,'L');   //190 
+  $pdf->Cell(11,5,$item->qty,1,0,'C');
+  $pdf->Cell(8, 5,$item->price,1,0,'C');
+  $pdf->Cell(12,5,$item->price*$item->qty,1,1,'C');  
 }
 
 
@@ -125,6 +123,49 @@ $pdf->Cell(20,5,'',0,0,'L');   //190
 //$pdf->Cell(20,5,'',0,0,'C');
 $pdf->Cell(25,5,'DISCOUNT',1,0,'C');
 $pdf->Cell(20,5,$row->discount,1,1,'C');
+$pdf->SetX(8);
+$pdf->SetFont('courier','B',8);
+$pdf->Cell(20,8,'',0,0,'L');   //190
+// $pdf->Cell(20,8,'',0,0,'C');
+$pdf->Cell(25,8,'First Payment',1,0,'C');
+$pdf->Cell(20,8,$row->paid,1,1,'C');
+
+$invoice_id = $id;
+ $all_paid = 0;
+$previous_payment_check=$pdo->prepare("SELECT * FROM `payments` WHERE `invoice_id`=:invoice_id");
+ $previous_payment_check->bindParam(':invoice_id', $invoice_id);
+$previous_payment_check->execute();
+
+
+if($previous_payment_check->fetchColumn()){
+$pdf->SetFont('Arial','B',8);
+$pdf->Cell(17,8,'Installments',1,0,'L');   //190
+$pdf->Cell(18,8,'Date',1,0,'C');
+$pdf->Cell(14,8,'Price',1,0,'C');
+$pdf->Cell(14,8,'Due',1,1,'C');   
+
+
+$i=1;
+
+$previous_payment=$pdo->prepare("SELECT * FROM `payments` WHERE `invoice_id`=:invoice_id");
+ $previous_payment->bindParam(':invoice_id', $invoice_id);
+$previous_payment->execute();
+while($row_data=$previous_payment->fetch(PDO::FETCH_OBJ)  ){
+
+ $all_paid = $all_paid + $row_data->payment;  
+$pdf->SetFont('Arial','B',8);
+// $pdf->SetFillColor(255,255,0);
+$pdf->Cell(17,8,$i,1,0,'L');   //190
+$pdf->Cell(18,8,$row_data->date,1,0,'C');
+$pdf->Cell(14,8,$row_data->payment,1,0,'C');
+$pdf->Cell(14,8,$row_data->due,1,1,'C');   
+$i++;
+}
+}
+  $all_paid = $all_paid+$row->paid;
+  $all_due = $row->total-$all_paid;
+
+
 
 
 $pdf->SetX(7);
@@ -140,7 +181,8 @@ $pdf->SetFont('courier','B',8);
 $pdf->Cell(20,5,'',0,0,'L');   //190
 //$pdf->Cell(20,5,'',0,0,'C');
 $pdf->Cell(25,5,'PAID',1,0,'C');
-$pdf->Cell(20,5,$row->paid,1,1,'C');
+$pdf->Cell(20,5,$all_paid,1,1,'C');
+
 
 
 $pdf->SetX(7);
@@ -148,7 +190,7 @@ $pdf->SetFont('courier','B',8);
 $pdf->Cell(20,5,'',0,0,'L');   //190
 //$pdf->Cell(20,5,'',0,0,'C');
 $pdf->Cell(25,5,'DUE',1,0,'C');
-$pdf->Cell(20,5,$row->due,1,1,'C');
+$pdf->Cell(20,5,$all_due,1,1,'C');
 
 
 $pdf->SetX(7);
@@ -157,8 +199,6 @@ $pdf->Cell(20,5,'',0,0,'L');   //190
 //$pdf->Cell(20,5,'',0,0,'C');
 $pdf->Cell(25,5,'PAYMENT TYPE',1,0,'C');
 $pdf->Cell(20,5,$row->payment_type,1,1,'C');
-
-
 
 $pdf->Cell(20,5,'',0,1,'');
 
@@ -175,7 +215,6 @@ $pdf->SetFont('Arial','',5);
 $pdf->Cell(75,5,'You can refund within 2 days of purchase. ',0,1,'');
 
 
-
-
 $pdf->Output();
+
 ?>
