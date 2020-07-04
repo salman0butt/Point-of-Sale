@@ -11,6 +11,7 @@ if (isset($_GET['edit_id'])) {
 }
 
 if (isset($_POST['update_product'])) {
+  $product_imeis = explode(',', $_POST['product_imei']);
     $product_name = $_POST['product_name'];
      $product_category = $_POST['product_category'];
     $purchase_price = $_POST['purchase_price'];
@@ -61,8 +62,15 @@ Swal.fire(
 
             $update->bindParam(':pimage', $new_file);
 
-                $run = $update->execute();
-          
+              $run = $update->execute();
+            $prod_id = $edit_id;
+ 
+        foreach($product_imeis as $product_imei){
+        $insert_imei = $pdo->prepare("INSERT INTO `product_imei`(`product_id`, `imei`)  VALUES(:product_id,:product_imei)");
+        $insert_imei->bindParam(':product_id', $prod_id);
+        $insert_imei->bindParam(':product_imei', $product_imei);
+        $insert_imei->execute();
+          }
             if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
 
                 if (move_uploaded_file($tmp_name, $store)) {
@@ -180,7 +188,11 @@ while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
                   </div>
                   <div class="form-group">
                     <label for="description">Description</label>
-                   <textarea name="description" id="description" cols="30" rows="5" class="form-control" placeholder="Enter Description"><?php if(isset($pdescription)) echo $pdescription; ?></textarea>
+                   <textarea name="description" id="description" cols="30" rows="2" class="form-control" placeholder="Enter Description"><?php if(isset($pdescription)) echo $pdescription; ?></textarea>
+                  </div>
+                           <div class="form-group">
+                    <label for="product_imei">Poduct IMEI</label>
+                   <textarea name="product_imei" id="product_imei" cols="30" rows="2" class="form-control" placeholder="Enter IMEI"></textarea>
                   </div>
                   <div class="form-group">
                     <label for="image">Upload image</label>
