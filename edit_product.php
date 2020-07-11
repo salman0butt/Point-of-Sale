@@ -78,10 +78,7 @@ Swal.fire(
 				$insert_imei->bindParam(':product_imei', $product_imei);
 				$insert_imei->execute();
 			}
-			if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
-
-				if (move_uploaded_file($tmp_name, $store)) {
-					echo '<script>
+                echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Good job!",
@@ -90,6 +87,10 @@ Swal.fire(
 )
     });
     </script>';
+			if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
+
+				if (move_uploaded_file($tmp_name, $store)) {
+
 
 				} else {
 					echo '<script>
@@ -254,6 +255,11 @@ while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
                 reader.readAsDataURL(input.files[0]);
             }
         }
+</script>
+<script>
+    if ( window.history.replaceState ) {
+        window.history.replaceState( null, null, window.location.href );
+    }
 </script>
 <!-- /.content-wrapper -->
 <?php

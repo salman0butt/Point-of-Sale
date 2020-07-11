@@ -208,6 +208,11 @@ while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
   <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
+<script>
+    if ( window.history.replaceState ) {
+        window.history.replaceState( null, null, window.location.href );
+    }
+</script>
 <?php
 include_once 'includes/footer.php';
 
