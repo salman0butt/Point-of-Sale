@@ -88,7 +88,7 @@ if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
         <div class="col-lg-6">
                  <ul class="list-group">
             <li class="bg bg-success p-2"><h5 class="mb-1 text-center">Product Image</h5></li>
-              <img src="<?php if(isset($pimage)) echo "uploads/".$pimage; ?>" alt="product image">
+              <img src="<?php if(isset($pimage)) echo "uploads/".$pimage; ?>" alt="product image" style="max-height:400px;">
           </ul>
         </div>
         <!-- /.col-md-6 -->

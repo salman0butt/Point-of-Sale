@@ -43,7 +43,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <!-- AdminLTE App -->
 <script src="dist/js/adminlte.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script src="../../plugins/sweetalert2/sweetalert2@9.js"></script>
 <script src="../../plugins/bootstrap-datepicker-1.9.0-dist_2/bootstrap-datepicker.min.js"></script>
 <!-- DataTables -->
 <script src="../../plugins/datatables/jquery.dataTables.js"></script>
@@ -51,13 +51,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="../../plugins/select2/js/select2.full.min.js"></script>
  <script src="Chart.js-2.8.0/dist/Chart.min.js"></script>
 
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.flash.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.print.min.js"></script>
+<script src="../../plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="../../plugins/datatables-buttons/js/buttons.flash.min.js"></script>
+<script src="../../plugins/jszip/jszip.min.js"></script>
+<script src="../../plugins/pdfmake/pdfmake.min.js"></script>
+<script src="../../plugins/pdfmake/vfs_fonts.js"></script>
+<script src="../../plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="../../plugins/datatables-buttons/js/buttons.print.min.js"></script>
 
 </head>
 <body class="hold-transition sidebar-mini">
@@ -248,6 +248,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </p>
             </a>
             <ul class="nav nav-treeview">
+                   <li class="nav-item">
+                <a href="date_reports.php" class="nav-link">
+                <i class="fas fa-signal"></i>
+                  <p>Date Reports</p>
+                </a>
+              </li>
               <li class="nav-item">
                 <a href="table_reports.php" class="nav-link">
                 <i class="fas fa-signal"></i>
@@ -269,6 +275,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
               <i class="fas fa-users"></i>
               <p>
                 Customer Ledger
+              </p>
+            </a>
+          </li>
+            <li class="nav-item">
+            <a href="single_supplier.php" class="nav-link">
+              <i class="fas fa-users"></i>
+              <p>
+                Suplier Ledger
               </p>
             </a>
           </li>

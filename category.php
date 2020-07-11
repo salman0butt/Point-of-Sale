@@ -1,22 +1,23 @@
-<?php 
+<?php
 session_start();
 include_once 'includes/db.php';
-include_once('includes/header.php');
+include_once 'includes/header.php';
 
 if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
-  header('Location: index.php');
+	header('Location: index.php');
 }
-
 
 if (isset($_POST['save_cat'])) {
 
-  $cat_name = $_POST['name'];
+	$cat_name = $_POST['name'];
 
-  if (isset($_POST['name'])) {
-    $cat_name_check = $pdo->prepare("SELECT * FROM `category` WHERE `name` = '$cat_name'");
-    $cat_name_check->execute();
-    if ($cat_name_check->rowCount() > 0) {
-      echo '<script>
+	if (isset($_POST['name'])) {
+
+		$cat_name_check = $pdo->prepare("SELECT * FROM `category` WHERE `name` = '$cat_name'");
+		$cat_name_check->execute();
+
+		if ($cat_name_check->rowCount() > 0) {
+			echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Warning",
@@ -25,13 +26,22 @@ Swal.fire(
 )
     });
     </script>';
-    } else {
+		} else {
+			try {
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo->beginTransaction();
 
-      $insert = $pdo->prepare("INSERT INTO `category`(`name`) VALUES(:name)");
-      $insert->bindParam(':name', $cat_name);
-      $run = $insert->execute();
-      if ($run) {
-        echo '<script>
+				$insert = $pdo->prepare("INSERT INTO `category`(`name`) VALUES(:name)");
+				$insert->bindParam(':name', $cat_name);
+				$run = $insert->execute();
+
+				$pdo->commit();
+			} catch (Exception $e) {
+				$pdo->rollback();
+			}
+
+			if ($run) {
+				echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Good job!",
@@ -41,8 +51,8 @@ Swal.fire(
     });
     </script>';
 
-      } else {
-        echo '<script>
+			} else {
+				echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Warning",
@@ -51,23 +61,31 @@ Swal.fire(
 )
     });
     </script>';
-      }
-    }
-  }
+			}
+		}
+	}
 
 }
 
 if (isset($_POST['update_cat'])) {
 
-       $cat_id = $_POST['cat_id'];
-       $cat_name = $_POST['name'];
+	$cat_id = $_POST['cat_id'];
+	$cat_name = $_POST['name'];
 
-      $update = $pdo->prepare("UPDATE `category` SET `name`=:name WHERE `cat_id`=:id");
-      $update->bindParam(':name', $cat_name);
-      $update->bindParam(':id', $cat_id);
-      $run = $update->execute();
-      if ($run) {
-        echo '<script>
+	try {
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$pdo->beginTransaction();
+
+		$update = $pdo->prepare("UPDATE `category` SET `name`=:name WHERE `cat_id`=:id");
+		$update->bindParam(':name', $cat_name);
+		$update->bindParam(':id', $cat_id);
+		$run = $update->execute();
+		$pdo->commit();
+	} catch (Exception $e) {
+		$pdo->rollback();
+	}
+	if ($run) {
+		echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Good job!",
@@ -77,8 +95,8 @@ Swal.fire(
     });
     </script>';
 
-      } else {
-        echo '<script>
+	} else {
+		echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Warning",
@@ -87,22 +105,21 @@ Swal.fire(
 )
     });
     </script>';
-      }
+	}
 
 }
-
 
 if ($_SESSION['role'] == 'admin') {
-  include_once 'includes/header.php';
+	include_once 'includes/header.php';
 } else {
-  include_once 'includes/header_user.php';
+	include_once 'includes/header_user.php';
 }
 if (isset($_GET['cat_del'])) {
-  $del_id = $_GET['cat_del'];
-  $del_cat = $pdo->prepare("DELETE FROM `category` WHERE `cat_id`=$del_id");
-  $status = $del_cat->execute();
-  if ($status) {
-        echo '<script>
+	$del_id = $_GET['cat_del'];
+	$del_cat = $pdo->prepare("DELETE FROM `category` WHERE `cat_id`=$del_id");
+	$status = $del_cat->execute();
+	if ($status) {
+		echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Good job!",
@@ -111,8 +128,8 @@ Swal.fire(
 )
     });
     </script>';
-  }else {
-          echo '<script>
+	} else {
+		echo '<script>
     jQuery(function validation(){
 Swal.fire(
   "Warning",
@@ -121,12 +138,10 @@ Swal.fire(
 )
     });
     </script>';
-  }
+	}
 }
 
-
-
- ?>
+?>
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
   <!-- Content Header (Page header) -->
@@ -159,15 +174,15 @@ Swal.fire(
             <!-- /.card-header -->
             <!-- form start -->
             <?php if (isset($_GET['cat_edit'])) {
-              $cat_id = $_GET['cat_edit'];
+	$cat_id = $_GET['cat_edit'];
 
-            $cat_name = $pdo->prepare("SELECT * FROM `category` WHERE `cat_id` = $cat_id");
-            $cat_name->execute();
-           $row = $cat_name->fetch(PDO::FETCH_ASSOC);
-           $cate_id = $row['cat_id'];
-           $cate_name = $row['name'];
-             ?>
-              
+	$cat_name = $pdo->prepare("SELECT * FROM `category` WHERE `cat_id` = $cat_id");
+	$cat_name->execute();
+	$row = $cat_name->fetch(PDO::FETCH_ASSOC);
+	$cate_id = $row['cat_id'];
+	$cate_name = $row['name'];
+	?>
+
             <form action="" method="POST">
               <div class="card-body">
                 <div class="form-group">
@@ -178,7 +193,7 @@ Swal.fire(
                 <button type="submit" class="btn btn-info" name="update_cat">Update</button>
               </div>
             </form>
-            <?php }else { ?>
+            <?php } else {?>
                    <form action="" method="POST">
               <div class="card-body">
                 <div class="form-group">
@@ -188,7 +203,7 @@ Swal.fire(
                 <button type="submit" class="btn btn-info" name="save_cat">Save</button>
               </div>
             </form>
-          <?php } ?>
+          <?php }?>
           </div>
           <!-- /.card -->
         </div>
@@ -209,21 +224,20 @@ Swal.fire(
 $stmt = $pdo->prepare("SELECT * FROM `category` ORDER BY `cat_id` DESC");
 $stmt->execute();
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-  $cat_id = $row['cat_id'];
-  $name = $row['name'];
+	$cat_id = $row['cat_id'];
+	$name = $row['name'];
 
-
-  ?>
+	?>
               <tr>
                 <td><?php echo $cat_id; ?></td>
                 <td><?php echo $name; ?></td>
                 <td><a href="category.php?cat_edit=<?php echo $cat_id; ?>" class="btn btn-info">Edit</a></td>
                 <td><a href="category.php?cat_del=<?php echo $cat_id; ?>" class="btn btn-danger">Delete</a></td>
-                
+
 
               </tr>
 
-       <?php } ?>       
+       <?php }?>
             </tbody>
           </table>
         </div>
@@ -234,10 +248,10 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
   <!-- /.content -->
 </div>
 <!-- /.content-wrapper -->
-<?php 
-include_once('includes/footer.php');
+<?php
+include_once 'includes/footer.php';
 
- ?>
+?>
 <script>
   $(document).ready( function () {
     $('#category_table').DataTable();

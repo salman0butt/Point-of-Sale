@@ -70,7 +70,14 @@ include_once 'includes/header.php';
           <div class="small-box bg-green">
             <div class="inner">
               <h3>
-                <?php echo  number_format($net_total, 2); ?><sup style="font-size: 20px"></sup></h3>
+                <?php
+                if(!empty($net_total) || $net_total != null ){
+                     echo  number_format($net_total, 2); 
+                }else {
+                  echo '0';
+                }
+                 
+                 ?><sup style="font-size: 20px"></sup></h3>
               <p>Total Sale</p>
             </div>
             <div class="icon">
@@ -113,7 +120,15 @@ while ($row = $select->fetch(PDO::FETCH_OBJ)) {
           <div class="small-box bg-yellow">
             <div class="inner">
               <h3>
-                <?php echo number_format($total_paid,2); ?>
+                <?php 
+                if(!empty($total_paid) || $total_paid != null ){
+                     echo number_format($total_paid,2);
+                }else {
+                  echo '0';
+                }
+                
+               
+                 ?>
               </h3>
               <p>Total Paid</p>
             </div>
@@ -140,7 +155,14 @@ while ($row = $select->fetch(PDO::FETCH_OBJ)) {
           <div class="small-box bg-red">
             <div class="inner">
               <h3>
-                <?php echo number_format($total_due,2); ?>
+              
+                <?php   if(!empty($total_due) || $total_due != null ){
+                    echo number_format($total_due,2); 
+                }else {
+                  echo '0';
+                }
+                
+                 ?>
               </h3>
               <p>Total Due</p>
             </div>
@@ -156,9 +178,15 @@ while ($row = $select->fetch(PDO::FETCH_OBJ)) {
           <div class="small-box bg-info">
             <div class="inner">
               <h3>
-                <?php echo $total_purchase; ?>
+                <?php   if(!empty($total_purchase) || $total_purchase != null ){
+                    echo number_format($total_purchase);
+                }else {
+                  echo '0';
+                }
+
+                 ?>
               </h3>
-              <p>Total Orders</p>
+              <p>Total Purchase</p>
             </div>
             <div class="icon">
               <i class="fas fa-shopping-bag"></i>
@@ -256,7 +284,7 @@ while ($row = $select->fetch(PDO::FETCH_OBJ)) {
 
 	echo '
     <tr>
-    <td><a href="editorder.php?id=' . $row->invoice_id . '">' . $row->invoice_id . '</a></td>
+    <td>' . $row->invoice_id . '</td>
     <td>' . $row->customer_name . '</td>
     <td>' . $row->order_date . '</td>
     <td><span class="badge badge-success">' . "R.S " . $row->total . '</span></td>';

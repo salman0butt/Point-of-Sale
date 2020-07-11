@@ -5,132 +5,151 @@ include_once 'includes/db.php';
 include_once 'includes/header.php';
 
 if ($_SESSION['username'] == '' AND empty($_SESSION['username'])) {
-  header('Location: index.php');
+	header('Location: index.php');
 }
 
 function fill_products($pdo) {
 
-  $output = '';
-  $select = $pdo->prepare("SELECT * FROM `products` ORDER BY `p_name` ASC");
-  $select->execute();
-  $result = $select->fetchAll();
-  // var_dump($result);
-  foreach ($result as $row) {
-    $output .= '<option value="' . $row['pid'] . '">' . $row["p_name"] . '</option>';
-  }
+	$output = '';
+	$select = $pdo->prepare("SELECT * FROM `products` ORDER BY `p_name` ASC");
+	$select->execute();
+	$result = $select->fetchAll();
+	// var_dump($result);
+	foreach ($result as $row) {
+		$output .= '<option value="' . $row['pid'] . '">' . $row["p_name"] . '</option>';
+	}
 
-  return $output;
+	return $output;
 
 }
 function customers($pdo) {
 
-  $output = '';
-  $select = $pdo->prepare("SELECT * FROM `customers` ORDER BY `customer_name` ASC");
-  $select->execute();
-  $result = $select->fetchAll();
-  // var_dump($result);
-  foreach ($result as $row) {
-    $output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '">' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
-  }
+	$output = '';
+	$select = $pdo->prepare("SELECT * FROM `customers` ORDER BY `customer_name` ASC");
+	$select->execute();
+	$result = $select->fetchAll();
+	// var_dump($result);
+	foreach ($result as $row) {
+		$output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '">' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
+	}
 
-  return $output;
+	return $output;
 
-} 
+}
 
 if (isset($_POST['save_order'])) {
 
-  $customer_name = $_POST['customer_name'];
-  $customer_id = $_POST['customer_id'];
+	$customer_name = $_POST['customer_name'];
+	$customer_id = $_POST['customer_id'];
 
-  $grunters = $pdo->prepare("SELECT * FROM `customers` Where id=:customer_id");
-  $grunters->bindParam(':customer_id', $customer_id);
-  $grunters->execute();
-  $row = $grunters->fetch(PDO::FETCH_OBJ);
+	$grunters = $pdo->prepare("SELECT * FROM `customers` Where id=:customer_id");
+	$grunters->bindParam(':customer_id', $customer_id);
+	$grunters->execute();
+	$row = $grunters->fetch(PDO::FETCH_OBJ);
 
-  $grunter = $row->grunter_name;
-  $order_date = date('Y-m-d', strtotime($_POST['order_date']));
-  $subtotal = $_POST["sub-total"];
-  $tax = $_POST['tax'];
-  $discount = $_POST['discount'];
-  $total = $_POST['total'];
-  $paid = $_POST['paid'];
-  $due = $_POST['due'];
-  $payment_type = $_POST['rb'];
+	$grunter = $row->grunter_name;
+	$order_date = date('Y-m-d', strtotime($_POST['order_date']));
+	$subtotal = $_POST["sub-total"];
+	$tax = $_POST['tax'];
+	$discount = $_POST['discount'];
+	$total = $_POST['total'];
+	$paid = $_POST['paid'];
+	$due = $_POST['due'];
+	$payment_type = $_POST['rb'];
 
- 
-  $arr_productid = $_POST['product_id'];
-  $arr_productname = $_POST['product_name'];
-  $arr_productiemi = $_POST['product_imei'];
-  echo '<script>console.log("'.$arr_productiemi.');</script>';
-  $arr_stock = $_POST['stock'];
-  foreach($arr_stock as $stock){
-    if($stock == 0){
-    echo '<script>alert("PRODUCT OUT OF STOCK")</script>';
-     // header('location:orderlist.php');    
-    return false;
-  }
-  }
-  $arr_qty = $_POST['qty'];
-  $arr_price = $_POST['price'];
-  $arr_total = $_POST['total'];
+	$arr_productid = $_POST['product_id'];
+	$arr_productname = $_POST['product_name'];
+	$arr_productiemi = $_POST['product_imei'];
+	echo '<script>console.log("' . $arr_productiemi . ');</script>';
+	$arr_stock = $_POST['stock'];
+	foreach ($arr_stock as $stock) {
+		if ($stock == 0) {
+			echo '<script>alert("PRODUCT OUT OF STOCK")</script>';
+			// header('location:orderlist.php');
+			return false;
+		}
+	}
+	$arr_qty = $_POST['qty'];
+	$arr_price = $_POST['price'];
+	$arr_total = $_POST['total'];
 
-  $insert = $pdo->prepare("insert into `invoice`(`customer_name`,`customer_id`,`grunter`, `order_date`, `subtotal`, `tax`, `discount`, `total`, `paid`, `due`, `payment_type`) values(:cust,:customer_id ,:grunter ,:orderdate,:stotal,:tax,:disc,:total,:paid,:due,:ptype)");
-  
-  $insert->bindParam(':cust', $customer_name);
-  $insert->bindParam(':customer_id', $customer_id);
-  $insert->bindParam(':grunter', $grunter);
-  $insert->bindParam(':orderdate', $order_date);
-  $insert->bindParam(':stotal', $subtotal);
-  $insert->bindParam(':tax', $tax);
-  $insert->bindParam(':disc', $discount);
-  $insert->bindParam(':total', $total);
-  $insert->bindParam(':paid', $paid);
-  $insert->bindParam(':due', $due);
-  $insert->bindParam(':ptype', $payment_type);
+	try {
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$pdo->beginTransaction();
 
-  $insert->execute();
-   //$insert->debugDumpParams();
+		$insert = $pdo->prepare("insert into `invoice`(`customer_name`,`customer_id`,`grunter`, `order_date`, `subtotal`, `tax`, `discount`, `total`, `paid`, `due`, `payment_type`) values(:cust,:customer_id ,:grunter ,:orderdate,:stotal,:tax,:disc,:total,:paid,:due,:ptype)");
 
+		$insert->bindParam(':cust', $customer_name);
+		$insert->bindParam(':customer_id', $customer_id);
+		$insert->bindParam(':grunter', $grunter);
+		$insert->bindParam(':orderdate', $order_date);
+		$insert->bindParam(':stotal', $subtotal);
+		$insert->bindParam(':tax', $tax);
+		$insert->bindParam(':disc', $discount);
+		$insert->bindParam(':total', $total);
+		$insert->bindParam(':paid', $paid);
+		$insert->bindParam(':due', $due);
+		$insert->bindParam(':ptype', $payment_type);
 
-  //2nd  insert query for tbl_invoice_details
+		$insert->execute();
+      $invoice_id = $pdo->lastInsertId();
+		//$insert->debugDumpParams();
+		$pdo->commit();
+	} catch (Exception $e) {
+		$pdo->rollback();
+	}
 
-  $invoice_id = $pdo->lastInsertId();
-  if ($invoice_id != null) {
-   
-    for ($i = 0; $i < count($arr_productid); $i++) {
-
-      $rem_qty = $arr_stock[$i] - $arr_qty[$i];
-
-      if ($rem_qty < 0) {
-
-        return "Order Is Not Complete";
-      } else {
-
-        $update = $pdo->prepare("update `products` SET pstock ='$rem_qty' where pid='" . $arr_productid[$i] . "'");
-
-        $update->execute();
-
-      }
-
-      $insert = $pdo->prepare("insert into `invoice_details`(`invoice_id`, `product_id`, `product_name`, `product_imei`, `qty`, `price`, `order_date`) values(:invid,:pid,:pname,:imei,:qty,:price,:orderdate)");
-
-      $insert->bindParam(':invid', $invoice_id);
-      $insert->bindParam(':pid', $arr_productid[$i]);
-      $insert->bindParam(':pname', $arr_productname[$i]);
-      $insert->bindParam(':imei', $arr_productiemi[$i]);
-      $insert->bindParam(':qty', $arr_qty[$i]);
-      $insert->bindParam(':price', $arr_price[$i]);
-      $insert->bindParam(':orderdate', $order_date);
-
-      $insert->execute();
+	//2nd  insert query for tbl_invoice_details
 
 
-    }
-    //  echo"success fully created order";
-     header('location:orderlist.php');    
-    //echo '<script>alert("Order Placed Successfully")</script>';
+	if ($invoice_id != null) {
 
-  }
+		for ($i = 0; $i < count($arr_productid); $i++) {
+
+			$rem_qty = $arr_stock[$i] - $arr_qty[$i];
+
+			if ($rem_qty < 0) {
+
+				return "Order Is Not Complete";
+			} else {
+				try {
+					$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+					$pdo->beginTransaction();
+
+					$update = $pdo->prepare("update `products` SET pstock ='$rem_qty' where pid='" . $arr_productid[$i] . "'");
+
+					$update->execute();
+					$pdo->commit();
+				} catch (Exception $e) {
+					$pdo->rollback();
+				}
+
+			}
+			try {
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo->beginTransaction();
+
+				$insert = $pdo->prepare("insert into `invoice_details`(`invoice_id`, `product_id`, `product_name`, `product_imei`, `qty`, `price`, `order_date`) values(:invid,:pid,:pname,:imei,:qty,:price,:orderdate)");
+
+				$insert->bindParam(':invid', $invoice_id);
+				$insert->bindParam(':pid', $arr_productid[$i]);
+				$insert->bindParam(':pname', $arr_productname[$i]);
+				$insert->bindParam(':imei', $arr_productiemi[$i]);
+				$insert->bindParam(':qty', $arr_qty[$i]);
+				$insert->bindParam(':price', $arr_price[$i]);
+				$insert->bindParam(':orderdate', $order_date);
+
+				$insert->execute();
+				$pdo->commit();
+			} catch (Exception $e) {
+				$pdo->rollback();
+			}
+		}
+		//  echo"success fully created order";
+		header('location:orderlist.php');
+		//echo '<script>alert("Order Placed Successfully")</script>';
+
+	}
 }
 
 ?>
@@ -181,7 +200,7 @@ if (isset($_POST['save_order'])) {
                       <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-users"></i></span>
                       </div>
-                    <select class="form-control customer" id="customer_name" name="customer_name"> <option value="">Select Option</option> <?php echo customers($pdo); ?> </select>
+                    <select class="form-control customer" id="customer_name" name="customer_name" required> <option value="">Select Option</option> <?php echo customers($pdo); ?> </select>
                     <input type="hidden" name="customer_id" id="customer_id" value="">
                     </div>
                   </div>
@@ -266,7 +285,7 @@ if (isset($_POST['save_order'])) {
                       <div class="input-group-prepend">
                         <span class="input-group-text">R.S</span>
                       </div>
-                      <input type="number" min="0" class="form-control" name="paid" id="paid" placeholder="">
+                      <input type="number" min="0" class="form-control" value="0" name="paid" id="paid" placeholder="">
                     </div>
                   </div>
                   <div class="form-group">
@@ -325,7 +344,7 @@ jQuery(document).ready(function($) {
     html += '<tr>';
     html += '<td><input type="hidden" class="form-control pname" name="product_name[]" readonly/></td>';
     html += '<td><select class="form-control product_id" style="width:250px;" name="product_id[]"> <option value="">Select Option</option> <?php echo fill_products($pdo); ?> </select></td>';
-    html += '<td><textarea type="text" class="form-control imei" name="product_imei[]" id="p_imei"/></textarea></td>';
+    html += '<td><textarea class="form-control imei" name="product_imei[]" id="p_imei"/></textarea></td>';
     html += '<td><input type="text" class="form-control stock" name="stock[]" readonly/></td>';
     html += '<td><input type="text" class="form-control price" name="price[]" readonly/></td>';
     html += '<td><input type="number" min="1" id="qty" onkeyup="calculateQtyPrice($(this))" onclick="calculateQtyPrice($(this))" class="form-control qty" name="qty[]"/></td>';
@@ -351,7 +370,7 @@ jQuery(document).ready(function($) {
               data = res.response;
               // console.log(res.imei);
               // console.log(response.imei);
-
+              console.log(res.imei);
           tr.find("#p_imei").val(res.imei);
           tr.find(".pname").val(data["p_name"]);
           tr.find(".stock").val(data["pstock"]);

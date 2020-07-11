@@ -44,20 +44,20 @@ function fill_products($pdo, $pid = '') {
 	}
 
 }
-function customers($pdo,$cid) {
+function customers($pdo, $cid) {
 
-  $output = '';
-  $select = $pdo->prepare("SELECT * FROM `customers` ORDER BY `customer_name` ASC");
-  $select->execute();
-  $result = $select->fetchAll();
-  // var_dump($result);
-  foreach ($result as $row) {
-    $output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '" '.($cid==$row["id"] ? 'selected' : '').'>' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
-  }
+	$output = '';
+	$select = $pdo->prepare("SELECT * FROM `customers` ORDER BY `customer_name` ASC");
+	$select->execute();
+	$result = $select->fetchAll();
+	// var_dump($result);
+	foreach ($result as $row) {
+		$output .= '<option value="' . $row['customer_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '" ' . ($cid == $row["id"] ? 'selected' : '') . '>' . $row["customer_name"] . " (" . $row["father_name"] . ")" . '</option>';
+	}
 
-  return $output;
+	return $output;
 
-} 
+}
 
 $id = $_GET['id'];
 $select = $pdo->prepare("SELECT * FROM `invoice` WHERE `invoice_id` =$id");
@@ -84,69 +84,89 @@ $row_invoice_details = $select->fetchAll(PDO::FETCH_ASSOC);
 if (isset($_POST['btnupdateorder'])) {
 
 //Steps for btnupdateorder button.
-$customer_name = $_POST['customer_name'];
-  $customer_id = $_POST['customer_id'];
+	$customer_name = $_POST['customer_name'];
+	$customer_id = $_POST['customer_id'];
 
-  $grunters = $pdo->prepare("SELECT * FROM `customers` Where id=:customer_id");
-  $grunters->bindParam(':customer_id', $customer_id);
-  $grunters->execute();
-  $row = $grunters->fetch(PDO::FETCH_OBJ);
+	$grunters = $pdo->prepare("SELECT * FROM `customers` Where id=:customer_id");
+	$grunters->bindParam(':customer_id', $customer_id);
+	$grunters->execute();
+	$row = $grunters->fetch(PDO::FETCH_OBJ);
 
-  $grunter = $row->grunter_name;
-  $order_date = date('Y-m-d', strtotime($_POST['order_date']));
-  $subtotal = $_POST["sub-total"];
-  $tax = $_POST['tax'];
-  $discount = $_POST['discount'];
-  $total = $_POST['total'];
-  $paid = $_POST['paid'];
-  $due = $_POST['due'];
-  $payment_type = $_POST['rb'];
+	$grunter = $row->grunter_name;
+	$order_date = date('Y-m-d', strtotime($_POST['order_date']));
+	$subtotal = $_POST["sub-total"];
+	$tax = $_POST['tax'];
+	$discount = $_POST['discount'];
+	$total = $_POST['total'];
+	$paid = $_POST['paid'];
+	$due = $_POST['due'];
+	$payment_type = $_POST['rb'];
 
- 
-  $arr_productid = $_POST['product_id'];
-  $arr_productname = $_POST['product_name'];
-  $arr_productiemi = $_POST['product_imei'];
-  echo '<script>console.log("'.$arr_productiemi.');</script>';
-  $arr_stock = $_POST['stock'];
-  $arr_qty = $_POST['qty'];
-  $arr_price = $_POST['price'];
-  $arr_total = $_POST['total'];
-  $arr_date = $_POST['order_date'];
-
-
+	$arr_productid = $_POST['product_id'];
+	$arr_productname = $_POST['product_name'];
+	$arr_productiemi = $_POST['product_imei'];
+	echo '<script>console.log("' . $arr_productiemi . ');</script>';
+	$arr_stock = $_POST['stock'];
+	$arr_qty = $_POST['qty'];
+	$arr_price = $_POST['price'];
+	$arr_total = $_POST['total'];
+	$arr_date = $_POST['order_date'];
 
 // 2) Write update query for tbl_product stock.
 
 	foreach ($row_invoice_details as $item_invoice_details) {
+		try {
+			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$pdo->beginTransaction();
 
-		$updateproduct = $pdo->prepare("update products set pstock=pstock+" . $item_invoice_details['qty'] . " where pid='" . $item_invoice_details['product_id'] . "'");
-		$updateproduct->execute();
+			$updateproduct = $pdo->prepare("update products set pstock=pstock+" . $item_invoice_details['qty'] . " where pid='" . $item_invoice_details['product_id'] . "'");
+			$updateproduct->execute();
+			$pdo->commit();
+		} catch (Exception $e) {
+			$pdo->rollback();
+		}
 	}
 
 // 3) Write delete query for tbl_invoice_details table data where invoice_id =$id .
 
-	$delete_invoice_details = $pdo->prepare("delete from invoice_details where invoice_id=$id");
+	try {
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$pdo->beginTransaction();
 
-	$delete_invoice_details->execute();
+		$delete_invoice_details = $pdo->prepare("delete from invoice_details where invoice_id=$id");
 
-	// 4) Write update query for tbl_invoice table data.
-	$update_invoice = $pdo->prepare("update invoice set customer_name=:cust,customer_id=:cust_id ,order_date=:orderdate,subtotal=:stotal,tax=:tax,discount=:disc,total=:total,paid=:paid,due=:due,payment_type=:ptype where invoice_id=:id");
+		$delete_invoice_details->execute();
+		$pdo->commit();
+	} catch (Exception $e) {
+		$pdo->rollback();
+	}
 
-	$update_invoice->bindParam(':cust', $customer_name);
-  $update_invoice->bindParam(':cust_id', $customer_id);
-	$update_invoice->bindParam(':orderdate', $order_date);
-	$update_invoice->bindParam(':stotal', $subtotal);
-	$update_invoice->bindParam(':tax', $tax);
-	$update_invoice->bindParam(':disc', $discount);
-	$update_invoice->bindParam(':total', $total);
-	$update_invoice->bindParam(':paid', $paid);
-	$update_invoice->bindParam(':due', $due);
-	$update_invoice->bindParam(':ptype', $payment_type);
-  $update_invoice->bindParam(':id', $id);
+	try {
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$pdo->beginTransaction();
 
-	$update_invoice->execute();
+		// 4) Write update query for tbl_invoice table data.
+		$update_invoice = $pdo->prepare("update invoice set customer_name=:cust,customer_id=:cust_id ,order_date=:orderdate,subtotal=:stotal,tax=:tax,discount=:disc,total=:total,paid=:paid,due=:due,payment_type=:ptype where invoice_id=:id");
 
-	$invoice_id = $pdo->lastInsertId();
+		$update_invoice->bindParam(':cust', $customer_name);
+		$update_invoice->bindParam(':cust_id', $customer_id);
+		$update_invoice->bindParam(':orderdate', $order_date);
+		$update_invoice->bindParam(':stotal', $subtotal);
+		$update_invoice->bindParam(':tax', $tax);
+		$update_invoice->bindParam(':disc', $discount);
+		$update_invoice->bindParam(':total', $total);
+		$update_invoice->bindParam(':paid', $paid);
+		$update_invoice->bindParam(':due', $due);
+		$update_invoice->bindParam(':ptype', $payment_type);
+		$update_invoice->bindParam(':id', $id);
+
+		$update_invoice->execute();
+    $invoice_id = $pdo->lastInsertId();
+		$pdo->commit();
+	} catch (Exception $e) {
+		$pdo->rollback();
+	}
+
 
 	if ($invoice_id != null) {
 
@@ -158,7 +178,7 @@ $customer_name = $_POST['customer_name'];
 			$selectpdt->execute();
 
 			while ($rowpdt = $selectpdt->fetch(PDO::FETCH_OBJ)) {
-       	$db_stock[$i] = $rowpdt->pstock;
+				$db_stock[$i] = $rowpdt->pstock;
 
 				$rem_qty = $db_stock[$i] - $arr_qty[$i];
 
@@ -178,20 +198,26 @@ $customer_name = $_POST['customer_name'];
 			}
 
 			// 7) Write insert query for tbl_invoice_details for insert new records.
+			try {
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo->beginTransaction();
 
-		 $insert = $pdo->prepare("insert into `invoice_details`(`invoice_id`, `product_id`, `product_name`, `product_imei`, `qty`, `price`, `order_date`) values(:invid,:pid,:pname,:imei,:qty,:price,:orderdate)");
+				$insert = $pdo->prepare("insert into `invoice_details`(`invoice_id`, `product_id`, `product_name`, `product_imei`, `qty`, `price`, `order_date`) values(:invid,:pid,:pname,:imei,:qty,:price,:orderdate)");
 
-      $insert->bindParam(':invid', $id);
-      $insert->bindParam(':pid', $arr_productid[$i]);
-      $insert->bindParam(':pname', $arr_productname[$i]);
-      $insert->bindParam(':imei', $arr_productiemi[$i]);
-      $insert->bindParam(':qty', $arr_qty[$i]);
-      $insert->bindParam(':price', $arr_price[$i]);
-      $insert->bindParam(':orderdate', $order_date);
+				$insert->bindParam(':invid', $id);
+				$insert->bindParam(':pid', $arr_productid[$i]);
+				$insert->bindParam(':pname', $arr_productname[$i]);
+				$insert->bindParam(':imei', $arr_productiemi[$i]);
+				$insert->bindParam(':qty', $arr_qty[$i]);
+				$insert->bindParam(':price', $arr_price[$i]);
+				$insert->bindParam(':orderdate', $order_date);
 
-			$insert->execute();
-    //$insert->debugDumpParams();
-
+				$insert->execute();
+				//$insert->debugDumpParams();
+				$pdo->commit();
+			} catch (Exception $e) {
+				$pdo->rollback();
+			}
 
 		}
 
@@ -249,9 +275,9 @@ $customer_name = $_POST['customer_name'];
                       <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-users"></i></span>
                       </div>
-                      <select class="form-control customer" id="customer_name" name="customer_name"> <option value="">Select Option</option> <?php echo customers($pdo,$cid); ?> </select>
+                      <select class="form-control customer" id="customer_name" name="customer_name" required> <option value="">Select Option</option> <?php echo customers($pdo, $cid); ?> </select>
                     <input type="hidden" name="customer_id" id="customer_id" value="<?php echo $cid; ?>">
-             
+
                     </div>
                   </div>
                 </div>
@@ -300,7 +326,7 @@ foreach ($row_invoice_details as $item_invoice_details) {
 echo '<td><input type="hidden" class="form-control pname" name="product_name[]" value="' . $row_product['p_name'] . '" readonly></td>';
 
 	echo '<td><select id="product_id" class="form-control product_id" name="product_id[]" style="width: 250px";><option value="">Select Option</option>' . fill_products($pdo, $item_invoice_details['product_id']) . ' </select></td>';
-  echo '<td><input type="text" class="form-control imei" value="'.$item_invoice_details['product_imei'].'" name="product_imei[]"/></td>';
+	echo '<td><input type="text" class="form-control imei" value="' . $item_invoice_details['product_imei'] . '" name="product_imei[]"/></td>';
 
 	echo '<td><input type="text" class="form-control stock" name="stock[]" value="' . $row_product['pstock'] . '" readonly></td>';
 	echo '<td><input type="text" class="form-control price" name="price[]" value="' . $row_product['sale_price'] . '" readonly></td>';

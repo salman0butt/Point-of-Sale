@@ -5,7 +5,7 @@ include_once 'includes/header.php';
 
 if (isset($_POST['add_product'])) {
 
-  $product_imeis = explode(',', $_POST['product_imei']);
+	$product_imeis = explode(',', $_POST['product_imei']);
 
 	$product_name = $_POST['product_name'];
 	$product_category = $_POST['product_category'];
@@ -21,9 +21,9 @@ if (isset($_POST['add_product'])) {
 	$image_extension = strtolower(end($image_extension));
 
 	$new_file = uniqid() . '.' . $image_extension;
-  if(empty($image)){
-    $new_file = 'no-image.png';
-  }
+	if (empty($image)) {
+		$new_file = 'no-image.png';
+	}
 
 	$store = "uploads/" . $new_file;
 
@@ -42,40 +42,60 @@ Swal.fire(
     </script>';
 		} else {
 
-			$insert = $pdo->prepare("INSERT INTO `products`(`p_name`, `p_category`, `purchase_price`, `sale_price`, `pstock`, `pdescription`, `pimage`) VALUES(:p_name,:p_category,:purchase_price,:sale_price,:pstock,:pdescription,:pimage)");
-			$insert->bindParam(':p_name', $product_name);
-			$insert->bindParam(':p_category', $product_category);
-			$insert->bindParam(':purchase_price', $purchase_price);
-			$insert->bindParam(':sale_price', $sale_price);
-			$insert->bindParam(':pstock', $stock);
-			$insert->bindParam(':pdescription', $description);
-			$insert->bindParam(':pimage', $new_file);
+			try {
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo->beginTransaction();
+
+				$insert = $pdo->prepare("INSERT INTO `products`(`p_name`, `p_category`, `purchase_price`, `sale_price`, `pstock`, `pdescription`, `pimage`) VALUES(:p_name,:p_category,:purchase_price,:sale_price,:pstock,:pdescription,:pimage)");
+				$insert->bindParam(':p_name', $product_name);
+				$insert->bindParam(':p_category', $product_category);
+				$insert->bindParam(':purchase_price', $purchase_price);
+				$insert->bindParam(':sale_price', $sale_price);
+				$insert->bindParam(':pstock', $stock);
+				$insert->bindParam(':pdescription', $description);
+				$insert->bindParam(':pimage', $new_file);
 
 				$run = $insert->execute();
-        // $insert->debugDumpParams();
         $prod_id = $pdo->lastInsertId();
-        // print_r($prod_id);
-        
-        foreach($product_imeis as $product_imei){
-        $insert_imei = $pdo->prepare("INSERT INTO `product_imei`(`product_id`, `imei`)  VALUES(:product_id,:product_imei)");
-        $insert_imei->bindParam(':product_id', $prod_id);
-        $insert_imei->bindParam(':product_imei', $product_imei);
-        $insert_imei->execute();
-        // $insert_imei->debugDumpParams();
-      }
+				$pdo->commit();
+			} catch (Exception $e) {
+				$pdo->rollback();
+			}
+			// $insert->debugDumpParams();
+		
+			// print_r($prod_id);
+
+			foreach ($product_imeis as $product_imei) {
+        if(empty($product_imei)){
+          continue;
+        }
+				try {
+					$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+					$pdo->beginTransaction();
+
+					$insert_imei = $pdo->prepare("INSERT INTO `product_imei`(`product_id`, `imei`)  VALUES(:product_id,:product_imei)");
+					$insert_imei->bindParam(':product_id', $prod_id);
+					$insert_imei->bindParam(':product_imei', $product_imei);
+					$insert_imei->execute();
+					$pdo->commit();
+				} catch (Exception $e) {
+					$pdo->rollback();
+				}
+				// $insert_imei->debugDumpParams();
+			}
+			echo '<script>
+          jQuery(function validation(){
+      Swal.fire(
+        "Good job!",
+        "Product Saved Successfully",
+        "success"
+      )
+          });
+          </script>';
 
 			if ($image_extension == 'jpg' || $image_extension == 'jpeg' || $image_extension == 'png' || $image_extension == 'gif') {
-      
+
 				if (move_uploaded_file($tmp_name, $store)) {
-					echo '<script>
-    jQuery(function validation(){
-Swal.fire(
-  "Good job!",
-  "Product Saved Successfully",
-  "success"
-)
-    });
-    </script>';
 
 				} else {
 					echo '<script>
@@ -147,11 +167,11 @@ while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
                   </div>
                   <div class="form-group">
                     <label for="purchase_price">Purchase Price</label>
-                    <input type="number" min="1" step="1" class="form-control" id="purchase_price" placeholder="Enter Price" name="purchase_price" required>
+                    <input type="number" value="0" min="1" step="1" class="form-control" id="purchase_price" placeholder="Enter Price" name="purchase_price" required>
                   </div>
                   <div class="form-group">
                     <label for="sale_price">Sale Price</label>
-                    <input type="number" min="1" step="1" class="form-control" id="sale_price" placeholder="Enter Price" name="sale_price" required>
+                    <input type="number" value="0" min="1" step="1" class="form-control" id="sale_price" placeholder="Enter Price" name="sale_price" required>
                   </div>
                   <div class="form-group">
                     <input type="submit" class="btn btn-info" name="add_product" value="Add Product">
@@ -160,7 +180,7 @@ while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
                 <div class="col-md-6">
                   <div class="form-group">
                     <label for="stock">Stock</label>
-                    <input type="number" min="1" step="1" class="form-control" id="stock" placeholder="Enter stock" name="stock" required>
+                    <input type="number" value="0" min="1" step="1" class="form-control" id="stock" placeholder="Enter stock" name="stock" required>
                   </div>
                   <div class="form-group">
                     <label for="description">Description</label>
