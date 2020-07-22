@@ -1,0 +1,596 @@
+<?php
+session_start();
+ob_start();
+include_once 'includes/db.php';
+include_once 'includes/header.php';
+
+if ($_SESSION['username'] == '' and empty($_SESSION['username'])) {
+	header('Location: index.php');
+}
+$purchaseId = $_GET['id']; 
+function fill_products($pdo, $pid = '') {
+
+	$output = '';
+	if (!empty($pid)) {
+
+		$select = $pdo->prepare("select * from `products` order by p_name asc");
+		$select->execute();
+
+		$result = $select->fetchAll();
+
+		foreach ($result as $row) {
+
+			$output .= '<option value="' . $row["pid"] . '"';
+			if ($pid == $row['pid']) {
+				$output .= 'selected';
+
+			}
+			$output .= '>' . $row["p_name"] . '</option>';
+
+		}
+
+		return $output;
+	} else {
+		$output = '';
+		$select = $pdo->prepare("SELECT * FROM `products` ORDER BY `p_name` ASC");
+		$select->execute();
+		$result = $select->fetchAll();
+		// var_dump($result);
+		foreach ($result as $row) {
+			$output .= '<option value="' . $row['pid'] . '">' . $row["p_name"] . '</option>';
+		}
+
+		return $output;
+	}
+
+}
+function suppliers($pdo, $cid) {
+
+	$output = '';
+	$select = $pdo->prepare("SELECT * FROM `suppliers` ORDER BY `supplier_name` ASC");
+	$select->execute();
+	$result = $select->fetchAll();
+	// var_dump($result);
+	foreach ($result as $row) {
+		$output .= '<option value="' . $row['supplier_name'] . " (" . $row["father_name"] . ")" . '" data-id="' . $row["id"] . '" ' . ($cid == $row["id"] ? 'selected' : '') . '>' . $row["supplier_name"] . " (" . $row["father_name"] . ")" . '</option>';
+	}
+
+	return $output;
+
+}
+
+$id = $_GET['id'];
+$select = $pdo->prepare("SELECT * FROM `purchase_invoice` WHERE `invoice_id` =$id");
+$select->execute();
+
+$row = $select->fetch(PDO::FETCH_ASSOC);
+
+$supplier_name = $row['supplier_name'];
+$cid = $row['supplier_id'];
+$order_date = date('Y-m-d', strtotime($row['purchase_date']));
+$subtotal = $row["subtotal"];
+$tax = $row['tax'];
+$discount = $row['discount'];
+$total = $row['total'];
+$paid = $row['paid'];
+$due = $row['due'];
+$payment_type = $row['payment_type'];
+
+$select = $pdo->prepare("select * from purchase_invoice_details where invoice_id =$id");
+$select->execute();
+
+$row_invoice_details = $select->fetchAll(PDO::FETCH_ASSOC);
+
+if (isset($_POST['btnupdateorder'])) {
+
+foreach ($_POST['product_imei'] as $textarea){
+  $product_imeis = explode(',', $textarea);
+}
+//Steps for btnupdateorder button.
+	$supplier_name = $_POST['supplier_name'];
+	$supplier_id = $_POST['supplier_id'];
+
+	$order_date = date('Y-m-d', strtotime($_POST['order_date']));
+	$subtotal = $_POST["sub-total"];
+	$tax = $_POST['tax'];
+	$discount = $_POST['discount'];
+	$total = $_POST['total'];
+	$paid = $_POST['paid'];
+	$due = $_POST['due'];
+	$payment_type = $_POST['rb'];
+
+	$arr_productid = $_POST['product_id'];
+	$arr_productname = $_POST['product_name'];
+	$arr_productiemi = $_POST['product_imei'];
+	// echo '<script>console.log("' . $arr_productiemi . ');</script>';
+	$arr_stock = $_POST['stock'];
+	$arr_qty = $_POST['qty'];
+	$arr_price = $_POST['price'];
+	$arr_total = $_POST['total'];
+	$arr_date = $_POST['order_date'];
+
+// 2) Write update query for tbl_product stock.
+
+	foreach ($row_invoice_details as $item_invoice_details) {
+		try {
+			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$pdo->beginTransaction();
+
+			$updateproduct = $pdo->prepare("update products set pstock=pstock+" . $item_invoice_details['qty'] . " where pid='" . $item_invoice_details['product_id'] . "'");
+			$updateproduct->execute();
+			$pdo->commit();
+		} catch (Exception $e) {
+			$pdo->rollback();
+		}
+	}
+
+// 3) Write delete query for tbl_invoice_details table data where invoice_id =$id .
+
+	$delete_invoice_details = $pdo->prepare("delete from purchase_invoice_details where invoice_id=$id");
+
+	$delete_invoice_details->execute();
+
+	try {
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$pdo->beginTransaction();
+
+		// 4) Write update query for tbl_invoice table data.
+		$update_invoice = $pdo->prepare("update purchase_invoice set supplier_name=:supplier_name,supplier_id=:supplier_id ,purchase_date=:orderdate,subtotal=:stotal,tax=:tax,discount=:disc,total=:total,paid=:paid,due=:due,payment_type=:ptype where invoice_id=:id");
+
+		$update_invoice->bindParam(':supplier_name', $supplier_name);
+		$update_invoice->bindParam(':supplier_id', $supplier_id);
+		$update_invoice->bindParam(':orderdate', $order_date);
+		$update_invoice->bindParam(':stotal', $subtotal);
+		$update_invoice->bindParam(':tax', $tax);
+		$update_invoice->bindParam(':disc', $discount);
+		$update_invoice->bindParam(':total', $total);
+		$update_invoice->bindParam(':paid', $paid);
+		$update_invoice->bindParam(':due', $due);
+		$update_invoice->bindParam(':ptype', $payment_type);
+		$update_invoice->bindParam(':id', $id);
+
+		$update_invoice->execute();
+    $invoice_id = $pdo->lastInsertId();
+		$pdo->commit();
+	} catch (Exception $e) {
+		$pdo->rollback();
+	}
+  $prod_id =  $purchaseId;
+	
+
+foreach ($product_imeis as $product_imei) {
+        if(empty($product_imei)){
+          continue;
+        }
+         try {
+          $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+          $pdo->beginTransaction();
+   
+          $insert_imei = $pdo->prepare("INSERT INTO `product_imei`(`product_id`, `imei`)  VALUES(:product_id,:product_imei)");
+          $insert_imei->bindParam(':product_id', $prod_id);
+          $insert_imei->bindParam(':product_imei', $product_imei);
+          $insert_imei->execute();
+          // $insert_imei->debugDumpParams();
+          $pdo->commit();
+        } catch (Exception $e) {
+          $pdo->rollback();
+        }
+      }
+
+
+	if ($invoice_id != null) {
+
+		for ($i = 0; $i < count($arr_productid); $i++) {
+
+// 5) Write select query for tbl_product table to get out stock value.
+
+			$selectpdt = $pdo->prepare("select * from `products` where pid='" . $arr_productid[$i] . "'");
+			$selectpdt->execute();
+
+			while ($rowpdt = $selectpdt->fetch(PDO::FETCH_OBJ)) {
+				$db_stock[$i] = $rowpdt->pstock;
+
+				$rem_qty = $db_stock[$i] + $arr_qty[$i];
+
+				if ($rem_qty < 0) {
+
+					return "Order Is Not Complete";
+				} else {
+
+					// 6) Write update query for tbl_product table to update stock values.
+					try {
+						$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+						$pdo->beginTransaction();
+
+						$update = $pdo->prepare("update `products` SET pstock ='$rem_qty' where pid='" . $arr_productid[$i] . "'");
+
+						$update->execute();
+						$pdo->commit();
+					} catch (Exception $e) {
+						$pdo->rollback();
+					}
+
+				}
+
+			}
+
+			// 7) Write insert query for tbl_invoice_details for insert new records.
+			try {
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo->beginTransaction();
+
+				$insert = $pdo->prepare("insert into `purchase_invoice_details`(`invoice_id`, `product_id`, `product_name`, `product_imei`, `qty`, `price`, `purchase_date`) values(:invid,:pid,:pname,:imei,:qty,:price,:orderdate)");
+
+				$insert->bindParam(':invid', $id);
+				$insert->bindParam(':pid', $arr_productid[$i]);
+				$insert->bindParam(':pname', $arr_productname[$i]);
+				$insert->bindParam(':imei', $arr_productiemi[$i]);
+				$insert->bindParam(':qty', $arr_qty[$i]);
+				$insert->bindParam(':price', $arr_price[$i]);
+				$insert->bindParam(':orderdate', $order_date);
+
+				$insert->execute();
+				// $insert->debugDumpParams();
+				$pdo->commit();
+			} catch (Exception $e) {
+				$pdo->rollback();
+			}
+
+		}
+
+		//  echo"success fully created order";
+		header('location:purchase_list.php');
+
+	}
+}
+?>
+
+<style type="text/css" media="screen">
+.select2-selection {
+  padding: 20px !important;
+}
+
+.select2-selection__rendered {
+  line-height: 13px !important;
+}
+
+</style>
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark">Edit Purchase</h1>
+        </div><!-- /.col -->
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="#">Dasboard</a></li>
+            <li class="breadcrumb-item active">Edit Purchase</li>
+          </ol>
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+  </div>
+  <!-- /.content-header -->
+  <!-- Main content -->
+  <div class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Edit Purchase</h3>
+            </div>
+            <form action="" method="POST" enctype="multipart/form-data">
+              <div class="card-body row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="product_name">Supplier Name</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-users"></i></span>
+                      </div>
+                      <select class="form-control supplier" id="supplier_name" name="supplier_name" required> <option value="">Select Option</option> <?php echo suppliers($pdo, $cid); ?> </select>
+                    <input type="hidden" name="supplier_id" id="supplier_id" value="<?php echo $cid; ?>">
+
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="stock">Order Date</label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                      </div>
+                      <input type="date" class="form-control" name="order_date" value="<?php if (isset($order_date)) {
+	echo $order_date;
+}
+?>" data-date-format="yyyy/mm/dd">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row" style="overflow-x: hidden">
+                <div class="col-md-12">
+                  <div style="overflow-x: auto;">
+                    <table class="table table-striped table-bordered" id="order_table">
+                      <thead>
+                        <tr>
+                          <td>#</td>
+                          <td>Search Product</td>
+                          <td>IMEI</td>
+                          <td>Stock</td>
+                          <td>Price</td>
+                          <td>Enter Quantity</td>
+                          <td>Total</td>
+                          <td><button type="button" class="btn btn-success" id="add_btn"><i class="fas fa-plus"></i></button></td>
+                        </tr>
+                      </thead>
+                      <tbody id="produt_table">
+                        <?php
+foreach ($row_invoice_details as $item_invoice_details) {
+// print_r($item_invoice_details);
+	$select = $pdo->prepare("select * from `products` where pid ='{$item_invoice_details['product_id']}'");
+	$select->execute();
+
+	$row_product = $select->fetch(PDO::FETCH_ASSOC);
+	?>
+                        <tr>
+                          <?php
+echo '<td><input type="hidden" class="form-control pname" name="product_name[]" value="' . $row_product['p_name'] . '" readonly></td>';
+
+	echo '<td><select id="product_id" class="form-control product_id" name="product_id[]" style="width: 250px";><option value="">Select Option</option>' . fill_products($pdo, $item_invoice_details['product_id']) . ' </select></td>';
+	echo '<td><input type="text" class="form-control imei" value="' . $item_invoice_details['product_imei'] . '" name="product_imei[]"/></td>';
+
+	echo '<td><input type="text" class="form-control stock" name="stock[]" value="' . $row_product['pstock'] . '" readonly></td>';
+	echo '<td><input type="text" class="form-control price" name="price[]" value="' . $row_product['sale_price'] . '" readonly></td>';
+	echo '<td><input type="number" min="1" id="qty" class="form-control qty" name="qty[]" onclick="calculateQtyPrice($(this))" onkeyup="calculateQtyPrice($(this))" value="' . $item_invoice_details['qty'] . '" ></td>';
+	echo '<td><input type="text" class="form-control total" name="total[]" value="' . $row_product['sale_price'] * $item_invoice_details['qty'] . '" readonly></td>';
+	echo '<td><center><button type="button" name="remove" id="btn_remove" class="btn btn-danger btn-sm btn_remove"><i class="fas fa-times"></i></button><center></td></center>';
+
+	?>
+                        </tr>
+                        <?php }?>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="row card-body">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="product_name">Sub Total</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">R.S</span>
+                      </div>
+                      <input type="number" class="form-control" name="sub-total" id="sub-total" readonly value="<?php if (isset($subtotal)) {
+	echo $subtotal;
+}
+?>">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="product_name">Tax (5%)</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">R.S</span>
+                      </div>
+                      <input type="number" min="0" class="form-control" name="tax" readonly id="tax" value="<?php if (isset($tax)) {
+	echo $tax;
+}
+?>">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="product_name">Discount</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">R.S</span>
+                      </div>
+                      <input type="number" min="0" class="form-control" name="discount" id="discount" value="<?php if (isset($discount)) {
+	echo $discount;
+}
+?>">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="product_name">Total</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">R.S</span>
+                      </div>
+                      <input type="number" min="0" class="form-control" readonly name="total" id="total" value="<?php if (isset($total)) {
+	echo $total;
+}
+?>">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="product_name">Paid</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">R.S</span>
+                      </div>
+                      <input type="number" min="0" class="form-control" name="paid" id="paid" value="<?php if (isset($paid)) {
+	echo $paid;
+}
+?>">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="product_name">Due</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">R.S</span>
+                      </div>
+                      <input type="number" min="0" class="form-control" readonly name="due" id="due" value="<?php if (isset($due)) {
+	echo $due;
+}
+?>">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="product_name" class="d-block">Payment Method</label>
+                    <label>
+                      <input type="radio" name="rb" class="minimal-red" value="Cash" <?php if ($payment_type == 'Cash') {
+	echo 'checked';
+}
+?>> CASH
+                    </label>
+                    <label>
+                      <input type="radio" name="rb" class="minimal-red" value="Card" <?php if ($payment_type == 'Card') {
+	echo 'checked';
+}
+?>> CARD
+                    </label>
+                    <label>
+                      <input type="radio" name="rb" class="minimal-red" value="Check" <?php if ($payment_type == 'Check') {
+	echo 'checked';
+}
+?>> CHECK
+                    </label>
+                  </div>
+                  <input type="submit" name="btnupdateorder" class="btn btn-info" value="Update Order">
+                </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- /.col-md-6 -->
+    </div>
+    <!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+
+<script>
+jQuery(document).ready(function($) {
+  $('.supplier').select2();
+     $('#supplier_name').on('select2:select', function(e) {
+    var data = e.params.data.element.dataset.id;
+    console.log(data);
+    $('#supplier_id').val(data);
+   });
+
+  $('.datepicker').datepicker({
+    format: 'mm/dd/yyyy'
+  });
+  $(document).on('click','#add_btn', function() {
+    var html = '';
+    html += '<tr>';
+    html += '<td><input type="hidden" class="form-control pname" name="product_name[]" readonly/></td>';
+    html += '<td><select class="form-control product_id" style="width:250px;" name="product_id[]"> <option value="">Select Option</option> <?php echo fill_products($pdo); ?> </select></td>';
+    html += '<td><input type="text" class="form-control imei" name="product_imei[]"/></td>';
+    html += '<td><input type="text" class="form-control stock" name="stock[]" readonly/></td>';
+    html += '<td><input type="text" class="form-control price" name="price[]" readonly/></td>';
+    html += '<td><input type="number" min="1" id="qty" onclick="calculateQtyPrice($(this))" onkeyup="calculateQtyPrice($(this))" class="form-control qty" name="qty[]"/></td>';
+    html += '<td><input type="text" class="form-control total" name="total[]" readonly/></td>';
+    html += '<td><center> <button type="button" name="remove" id="btn_remove" class="btn btn-danger btn-sm btn_remove"><i class="fas fa-times"></i></button></center></td>';
+    html += '</tr>';
+    $('#produt_table').append(html);
+
+        //initialze select 2 plugin
+    $('.product_id').select2();
+
+  });
+
+});
+jQuery(document).on('click', '.btn_remove', function() {
+  $(this).closest('tr').remove();
+  $('#paid').val(0);
+  calculateTotal();
+});
+
+function calculateQtyPrice(this_obj) {
+  var quantity = this_obj;
+  var tr = this_obj.parent().parent();
+  if ((quantity.val() - 0) > (tr.find(".stock").val() - 0)) {
+
+    // Swal.fire(
+    //   "Warning",
+    //   "Sorry! This much Quantity is not available",
+    //   "warning"
+    // );
+    // quantity.val(1);
+    tr.find('.total').val(quantity.val() * tr.find('.price').val());
+    calculateTotal();
+  } else {
+    tr.find('.total').val(quantity.val() * tr.find('.price').val());
+    calculateTotal();
+  }
+}
+
+function calculateTotal(disc = 0, paid = 0) {
+  var subtotal = 0;
+  var tax = 0;
+  var discount = disc;
+  var net_total = 0;
+  var paid_amt = paid;
+  var due = 0;
+
+  $('.total').each(function() {
+    subtotal = subtotal + ($(this).val() * 1);
+  });
+  tax = 0;
+  net_total = tax + subtotal;
+  net_total = net_total - discount;
+  due = net_total - paid_amt;
+
+  $('#sub-total').val(subtotal.toFixed(2));
+  $('#tax').val(tax.toFixed(2));
+  $('#total').val(net_total.toFixed(2));
+  $('#discount').val(discount);
+  $('#due').val(due.toFixed(2));
+
+}
+$('#discount').keyup(function(event) {
+  var discount = $(this).val();
+  calculateTotal(discount);
+  $('#paid').val(0);
+});
+
+$('#paid').keyup(function(event) {
+  var paid = $(this).val();
+  var discount = $('#discount').val();
+  calculateTotal(discount, paid);
+});
+    //initialze select 2 plugin
+    $('.product_id').select2();
+
+    $(document).on('change',".product_id", function(e) {
+      e.stopPropagation();
+      var product_id = this.value;
+      var tr = $(this).parent().parent();
+      $.ajax({
+        url: "handlers/get_product.php",
+        method: 'get',
+        data: { id: product_id },
+        success: function(response) {
+          data = JSON.parse(response);
+          tr.find(".pname").val(data["p_name"]);
+          tr.find(".stock").val(data["pstock"]);
+          tr.find(".price").val(data["purchase_price"]);
+          tr.find(".qty").val(1);
+          tr.find(".total").val(tr.find('.qty').val() * tr.find('.price').val());
+          calculateTotal();
+        }
+      });
+
+    });
+
+//lecture no 12 sales section
+
+</script>
+
+<?php
+include_once 'includes/footer.php';
+ob_end_flush();
+?>

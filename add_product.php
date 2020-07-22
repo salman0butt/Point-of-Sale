@@ -28,7 +28,7 @@ if (isset($_POST['add_product'])) {
 	$store = "uploads/" . $new_file;
 
 	if (isset($_POST['product_name'])) {
-		$pro_name_check = $pdo->prepare("SELECT * FROM `products` WHERE `pname` = '$product_name'");
+		$pro_name_check = $pdo->prepare("SELECT * FROM `products` WHERE `p_name` = '$product_name'");
 		$pro_name_check->execute();
 		if ($pro_name_check->rowCount() > 0) {
 			echo '<script>
